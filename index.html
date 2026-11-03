@@ -1,0 +1,648 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Board @ ASYS</title>
+<meta name="theme-color" content="#1C2024">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Board @ ASYS">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.min.js"></script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
+</body>
+</html>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Layout: dark site-office header bar, amber ASYS accent, one working column; list → detail sheet; meeting mode is a dense checklist. */
+:root{
+  --bg:#F2F3F1; --panel:#FFFFFF; --ink:#1C2024; --ink2:#5B6670; --line:#D8DCD9; --rowalt:#F7F8F6; --focus:#1C2024;
+  --amber:#F2A900; --amber-ink:#2A1F00;
+  --hdr:#1C2024; --hdr-line:#2E3539; --hdr-text:#FFFFFF; --hdr-muted:#C9D0D5;
+  --s-acik:#C9A227; --s-gor:#4A7BD0; --s-coz:#1F8A8A; --s-kap:#2E8B57; --s-ipt:#9AA3AB;
+  --p-kritik:#C8402E; --p-yuksek:#E07B16; --p-normal:#7B8792; --p-dusuk:#B8C0C6;
+  --bad:#C8402E; --good:#2E8B57;
+}
+@media (prefers-color-scheme:dark){ :root:not([data-theme="light"]){ color-scheme:dark;
+  --bg:#171A1C; --panel:#1F2427; --ink:#ECEEEA; --ink2:#A3ACB3; --line:#343B40; --rowalt:#23292D; --focus:#F2A900; --p-dusuk:#4E5861; }}
+:root[data-theme="dark"]{ color-scheme:dark;
+  --bg:#171A1C; --panel:#1F2427; --ink:#ECEEEA; --ink2:#A3ACB3; --line:#343B40; --rowalt:#23292D; --focus:#F2A900; --p-dusuk:#4E5861; }
+*{box-sizing:border-box}
+img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Manrope,"Segoe UI",Roboto,Arial,sans-serif;font-size:15px;line-height:1.45}
+button,input,select,textarea{font:inherit;color:inherit}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--hdr);z-index:10}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--hdr);color:var(--hdr-text)}
+.hbar{display:flex;align-items:center;gap:12px;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;white-space:nowrap;min-width:0}
+.brand .proj{font-weight:800;font-size:16px}
+.brand .sub{font-weight:600;font-size:13px;color:var(--hdr-muted);padding-left:10px;border-left:1px solid #5A646B}
+.logo{height:30px;width:auto;background:#fff;border-radius:6px;padding:3px 5px;display:block}
+.hright{margin-left:auto;display:flex;gap:6px;align-items:center;font-size:13px;color:var(--hdr-muted);min-width:0}
+.hright .nm{font-weight:700;color:var(--hdr-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px}
+.role{display:inline-block;font-size:10px;font-weight:800;border:1px solid #5A646B;border-radius:6px;padding:1px 6px;color:var(--hdr-muted);letter-spacing:.3px}
+.role.pm{background:var(--amber);color:var(--amber-ink);border-color:var(--amber)}
+.hbtn{background:transparent;border:1px solid #5A646B;border-radius:6px;padding:4px 9px;color:var(--hdr-text);cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap}
+.hbtn:hover{border-color:var(--amber)}
+nav{display:flex;overflow-x:auto;border-top:1px solid var(--hdr-line);scrollbar-width:none;padding-left:max(6px,env(safe-area-inset-left,0px));padding-right:max(6px,env(safe-area-inset-right,0px))}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:0 0 auto;background:none;border:0;border-bottom:3px solid transparent;padding:11px 14px;color:var(--hdr-muted);cursor:pointer;font-weight:700;font-size:14px;white-space:nowrap}
+nav button:hover{color:var(--hdr-text)}
+nav button.on{color:var(--amber);border-bottom-color:var(--amber)}
+.badge{display:inline-block;background:var(--amber);color:var(--amber-ink);border-radius:10px;font-size:11px;padding:0 6px;margin-left:6px;vertical-align:1px;font-weight:800}
+@media (max-width:600px){ .brand .sub{display:none} .hright .nm{max-width:90px} .logo{height:26px} .brand .proj{font-size:14px} .hbar{gap:8px} }
+main{padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1100px;margin:0 auto}
+section{display:none} section.on{display:block}
+h2{font-size:20px;margin:0;font-weight:800;letter-spacing:-.3px;text-wrap:balance}
+h3{font-size:15px;margin:0 0 8px;font-weight:700}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+.muted{color:var(--ink2);font-size:13px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row>*{min-width:0}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px} @media (max-width:560px){.grid2{grid-template-columns:1fr}}
+label.f{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:700;color:var(--ink2)}
+input,select,textarea{background:var(--panel);border:1px solid var(--line);border-radius:7px;padding:8px 10px;min-height:38px;width:100%}
+textarea{resize:vertical}
+input:focus,select:focus,textarea:focus,button:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.btn{background:var(--amber);color:var(--amber-ink);border:0;border-radius:8px;padding:9px 14px;font-weight:700;cursor:pointer;white-space:nowrap}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink)}
+.btn.sm{padding:5px 10px;font-size:13px}
+.btn.danger{background:var(--bad);color:#fff}
+.btn.good{background:var(--good);color:#fff}
+.btn:disabled{opacity:.45;cursor:default}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:var(--rowalt);border:1px solid var(--line);border-radius:14px;padding:4px 11px;font-size:13px;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--amber);color:var(--amber-ink);border-color:var(--amber);font-weight:700}
+.chip b{font-weight:800;margin-left:4px}
+/* list */
+.items{display:flex;flex-direction:column;gap:8px}
+.it{display:grid;grid-template-columns:6px 1fr auto;gap:0 10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer}
+.it:hover{border-color:var(--amber)}
+.it .stripe{background:var(--p-normal)} .it.kritik .stripe{background:var(--p-kritik)} .it.yuksek .stripe{background:var(--p-yuksek)} .it.dusuk .stripe{background:var(--p-dusuk)}
+.it .body{padding:10px 0 10px 4px;min-width:0}
+.it .side{padding:10px 12px 10px 0;display:flex;flex-direction:column;align-items:flex-end;gap:6px;font-size:12px;color:var(--ink2);white-space:nowrap}
+.it .t{font-weight:700;font-size:15px;line-height:1.3;overflow-wrap:anywhere}
+.it .m{font-size:12.5px;color:var(--ink2);margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.no{font-weight:800;color:var(--ink2);font-variant-numeric:tabular-nums}
+.st{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11.5px;font-weight:800;color:#fff;letter-spacing:.2px}
+.st.acik{background:var(--s-acik);color:#2A1F00} .st.gorusuldu{background:var(--s-gor)} .st.cozumde{background:var(--s-coz)} .st.kapali{background:var(--s-kap)} .st.iptal{background:var(--s-ipt);color:#1C2024}
+.tag{display:inline-block;border:1px solid var(--line);border-radius:6px;padding:0 6px;font-size:11.5px;font-weight:700;color:var(--ink2)}
+.tag.disc{color:var(--ink);background:var(--rowalt)}
+.late{color:var(--bad);font-weight:800}
+.empty{padding:28px;text-align:center;color:var(--ink2)}
+/* meeting */
+.mt{display:grid;grid-template-columns:6px 1fr;gap:0 10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;margin-bottom:8px}
+.mt .stripe{background:var(--p-normal)} .mt.kritik .stripe{background:var(--p-kritik)} .mt.yuksek .stripe{background:var(--p-yuksek)} .mt.dusuk .stripe{background:var(--p-dusuk)}
+.mt .in{padding:10px 12px 10px 4px;min-width:0}
+.mt .ctl{display:grid;grid-template-columns:1.2fr .8fr .7fr 2fr;gap:6px;margin-top:8px}
+@media (max-width:700px){.mt .ctl{grid-template-columns:1fr 1fr} .mt .ctl .wide{grid-column:1/-1}}
+.mt .acts{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.mt.done{opacity:.6}
+.mt .desc{font-size:13.5px;color:var(--ink2);margin-top:4px;white-space:pre-wrap;overflow-wrap:anywhere}
+.ghead{display:flex;align-items:center;gap:8px;margin:14px 0 6px;font-weight:800;font-size:13px;letter-spacing:.4px;text-transform:uppercase;color:var(--ink2)}
+.ghead::after{content:"";flex:1;height:1px;background:var(--line)}
+/* kpis */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.kpi{background:var(--rowalt);border-radius:8px;padding:10px 12px;box-shadow:inset 4px 0 0 var(--line)}
+.kpi .v{font-size:26px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums}
+.kpi .l{font-size:12px;color:var(--ink2)}
+.kpi.a{box-shadow:inset 4px 0 0 var(--s-acik)} .kpi.k{box-shadow:inset 4px 0 0 var(--p-kritik)} .kpi.l2{box-shadow:inset 4px 0 0 var(--bad)} .kpi.g{box-shadow:inset 4px 0 0 var(--s-kap)} .kpi.b{box-shadow:inset 4px 0 0 var(--s-gor)}
+.bars{display:flex;flex-direction:column;gap:6px}
+.bar{display:grid;grid-template-columns:150px 1fr 40px;gap:8px;align-items:center;font-size:13px}
+@media (max-width:560px){.bar{grid-template-columns:110px 1fr 36px}}
+.bar .lab{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .tr{height:14px;background:var(--rowalt);border-radius:4px;overflow:hidden;border:1px solid var(--line)}
+.bar .tr i{display:block;height:100%;background:var(--amber)}
+.bar .tr i.k{background:var(--p-kritik)}
+.bar .n{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+/* tables */
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th,td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line);vertical-align:middle;white-space:nowrap}
+th{font-size:12px;color:var(--ink2);font-weight:700;background:var(--rowalt)}
+tr:nth-child(even) td{background:var(--rowalt)}
+td input,td select{min-height:32px;padding:4px 8px}
+/* sheet / modal */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:30;padding:0}
+@media (min-width:700px){.modal{align-items:center;padding:16px}}
+.modal[hidden]{display:none}
+.box{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:14px 14px 0 0;padding:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px));width:100%;max-height:92vh;overflow:auto;box-shadow:0 12px 40px rgba(0,0,0,.35)}
+@media (min-width:700px){.box{border-radius:14px;max-width:620px;padding:18px 20px}}
+.box h2{font-size:18px}
+.box .hd{display:flex;align-items:flex-start;gap:10px}
+.box .x{margin-left:auto;background:transparent;border:0;font-size:22px;line-height:1;cursor:pointer;color:var(--ink2);padding:0 4px}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:4px 10px;font-size:13.5px;margin:10px 0}
+.kv .k{color:var(--ink2);font-weight:700}
+.desc{white-space:pre-wrap;overflow-wrap:anywhere;font-size:14.5px;margin:8px 0}
+.photos{display:flex;gap:8px;flex-wrap:wrap}
+.photos a,.photos .ph{display:block;width:92px;height:92px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:var(--rowalt);position:relative}
+.photos img{width:100%;height:100%;object-fit:cover;display:block}
+.photos .rm{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:0;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:14px;line-height:1}
+.cm{border-top:1px solid var(--line);padding:8px 0;font-size:14px}
+.cm .who{font-size:12px;color:var(--ink2);font-weight:700}
+.cm .tx{white-space:pre-wrap;overflow-wrap:anywhere}
+.pmbox{background:var(--rowalt);border:1px dashed var(--line);border-radius:8px;padding:10px;margin-top:10px}
+.pmbox .lb{font-size:11px;font-weight:800;letter-spacing:.4px;color:var(--amber-ink);background:var(--amber);display:inline-block;border-radius:5px;padding:1px 6px;margin-bottom:6px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:8px;font-weight:700;opacity:0;transition:opacity .25s;pointer-events:none;z-index:40;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
+.fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(18px + env(safe-area-inset-bottom,0px));z-index:8;box-shadow:0 6px 18px rgba(0,0,0,.25);padding:12px 18px;border-radius:999px;font-size:15px}
+.ro{color:var(--bad);font-weight:700;font-size:13px}
+.proto{font-family:Manrope,Arial,sans-serif;font-size:13px}
+.proto h1{font-size:18px;margin:0 0 4px}
+.proto table{font-size:12px}
+.proto th,.proto td{white-space:normal;vertical-align:top}
+.person{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.person .nm{font-weight:700;flex:1;min-width:0}
+.person.off{opacity:.5}
+.pick{display:flex;flex-direction:column;gap:6px;max-height:50vh;overflow:auto;margin:10px 0}
+.pick button{text-align:left;background:var(--rowalt);border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;font-weight:700}
+.pick button:hover{border-color:var(--amber)}
+.pick button small{display:block;font-weight:600;color:var(--ink2);font-size:12px}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
+.st.yapildi{background:var(--s-coz);text-decoration:line-through;text-decoration-color:rgba(255,255,255,.7)}
+.it.done .t,.strike{text-decoration:line-through;text-decoration-thickness:2px;opacity:.65}
+.it.done{background:var(--rowalt)}
+.miss{display:inline-block;background:var(--bad);color:#fff;border-radius:6px;padding:1px 7px;font-size:11px;font-weight:800}
+.kpi.d{box-shadow:inset 4px 0 0 var(--s-coz)}
+.hbtn.lang{font-weight:800;min-width:38px}
+.ro{display:block;margin-top:6px}
+.doneBtn{padding:4px 9px;font-size:12px}
+@media (max-width:600px){ .hright{gap:4px} .hright .nm{max-width:64px} .hright .role{display:none} .hbtn{padding:4px 6px;font-size:11px} .hbtn.lang{min-width:32px} .hbar{gap:6px;padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))} .brand .proj{font-size:13px} .logo{height:22px} #dayCopy{width:100%;margin-left:0} }
+.hbar{min-width:0;overflow:hidden}
+</style>
+</head>
+<body>
+<header>
+  <div class="hbar">
+    <div class="brand"><img src="data:image/png;base64,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" alt="ASYS" class="logo"><span class="proj">Board @ ASYS</span><span class="sub">Wildberries Almaty</span></div>
+    <div class="hright">
+      <span id="whoami"></span>
+      <button class="hbtn" id="btnPm" hidden></button>
+      <button class="hbtn" id="btnWho" data-t="logout">Çıkış</button>
+      <button class="hbtn lang" id="btnLang">RU</button>
+    </div>
+  </div>
+  <nav id="tabs">
+    <button data-tab="liste" class="on"><span data-t="tab_list">Açık Konular</span><span id="bOpen" class="badge" hidden></span></button>
+    <button data-tab="toplanti"><span data-t="tab_meet">Toplantı</span><span id="bMeet" class="badge" hidden></span></button>
+    <button data-tab="gosterge" data-t="tab_dash">Gösterge</button>
+    <button data-tab="ayarlar" id="tabAyar" hidden data-t="tab_set">Ayarlar</button>
+  </nav>
+</header>
+
+<main>
+<!-- LIST -->
+<section id="liste" class="on">
+  <div class="card">
+    <div class="row">
+      <h2 data-t="tab_list">Açık Konular</h2>
+      <span class="muted" id="listMeta"></span>
+      <button class="btn ghost sm" id="dayCopy" style="margin-left:auto" data-t="day_copy">Günlük özet (WhatsApp)</button>
+    </div>
+    <div id="roNote" class="ro" hidden></div>
+    <div class="row" style="margin-top:10px">
+      <input id="q" data-tp="search_ph" placeholder="Ara: no, konu, kişi" style="flex:1;min-width:180px">
+    </div>
+    <div class="chips" id="stChips" style="margin-top:8px"></div>
+    <div class="chips" id="mineChips" style="margin-top:6px">
+      <span class="chip" data-mine="to" data-t="f_to">Bana atananlar</span>
+      <span class="chip" data-mine="by" data-t="f_by">Benim açtıklarım</span>
+      <span class="chip" data-mine="late" data-t="f_late">Termini geçenler</span>
+    </div>
+  </div>
+  <div class="items" id="items"></div>
+  <div style="height:70px"></div>
+</section>
+
+<!-- MEETING -->
+<section id="toplanti">
+  <div class="card">
+    <div class="row">
+      <h2 data-t="meet_title">Haftalık Koordinasyon Toplantısı</h2>
+      <input type="date" id="meetDate" style="width:150px">
+    </div>
+    <p class="muted" id="meetHint" style="margin:8px 0 0" data-t="meet_hint">Açık maddeler öncelik sırasıyla listelenir. Her madde için sorumlu, termin ve karar yazın. Sorumlusu veya termini olmayan maddeler kırmızı işaretlidir. Toplantı sonunda protokolü indirin.</p>
+    <div class="row" style="margin-top:10px">
+      <button class="btn ghost" id="protoCopy" data-t="proto_copy">Protokolü kopyala (WhatsApp)</button>
+      <button class="btn" id="protoPdf" data-t="proto_pdf">Protokol PDF indir</button>
+    </div>
+    <p class="muted" style="font-size:12px;margin:6px 0 0" data-t="dl_hint">İndirirken tarayıcı onay ister; «İzin ver / Kaydet» deyin. HTML dosyasını açıp Ctrl+P ile PDF yapabilirsiniz.</p>
+  </div>
+  <div id="meetBody"></div>
+</section>
+
+<!-- DASHBOARD -->
+<section id="gosterge">
+  <div class="card">
+    <h2 data-t="tab_dash">Gösterge</h2>
+    <div class="kpis" style="margin-top:10px" id="kpis"></div>
+  </div>
+  <div class="grid2" style="gap:12px">
+    <div class="card"><h3 data-t="by_who">Sorumluya göre açık</h3><div class="bars" id="bWho"></div></div>
+    <div class="card"><h3 data-t="by_by">Kim ne kadar madde açtı</h3><div class="bars" id="bBy"></div></div>
+  </div>
+  <div class="card">
+    <h3 data-t="wk_title">Son 8 hafta: açılan / kapanan</h3>
+    <div class="tw"><table id="wkTbl"></table></div>
+  </div>
+</section>
+
+<!-- SETTINGS (PM) -->
+<section id="ayarlar">
+  <div class="card">
+    <h2 data-t="team">Ekip Listesi</h2>
+    <p class="muted" data-t="team_hint">Herkes bu listeden adını seçip PIN ile girer. Pasif yapılan kişi giriş yapamaz ama eski kayıtları kalır.</p>
+    <div class="row" style="margin-top:8px">
+      <input id="pName" data-tp="name_ph" placeholder="Ad Soyad" style="flex:2;min-width:160px">
+      <input id="pRole" data-tp="role_ph" placeholder="Görev (Şantiye Şefi, Elektrik Mühendisi…)" style="flex:2;min-width:160px">
+      <input id="pPin" inputmode="numeric" data-tp="pin_new_ph" placeholder="PIN (4 hane)" style="flex:1;min-width:110px;width:auto">
+      <button class="btn sm" id="addPerson" data-t="add">Ekle</button>
+    </div>
+    <div id="people" style="margin-top:8px"></div>
+  </div>
+  <div class="card">
+    <h2 data-t="pm_pass">PM Şifresi</h2>
+    <p class="muted" data-t="pm_pass_hint">Toplantıda sorumlu atama, kapatma ve bu ayarlar sayfası için gerekir. Panel sahibi şifresiz girer.</p>
+    <div class="row"><input type="password" id="newPass" data-tp="new_pass_ph" placeholder="Yeni şifre" style="flex:1;min-width:160px" autocomplete="new-password"><button class="btn sm" id="savePass" data-t="change_pass">Şifreyi değiştir</button></div>
+  </div>
+  <div class="card">
+    <h2 data-t="export">Dışa aktar</h2>
+    <div class="row"><button class="btn" id="allPdf" data-t="all_pdf">Tüm maddeler PDF</button></div>
+  </div>
+</section>
+</main>
+
+<button class="btn fab" id="fab" data-t="new_item">+ Yeni Madde</button>
+
+<!-- NEW / EDIT ITEM -->
+<div class="modal" id="mNew" hidden><div class="box">
+  <div class="hd"><h2 id="newTitle">Yeni Madde</h2><button class="x" data-close="mNew" aria-label="Kapat">×</button></div>
+  <p class="muted" id="newWho" style="margin:4px 0 10px"></p>
+  <label class="f"><span data-t="subject">Konu</span><input id="nTitle" maxlength="120" data-tp="subject_ph" placeholder="Örn: Blok 2 ВРУ-2 kablo kanalı eksik"></label>
+  <label class="f" style="margin-top:10px"><span data-t="descr">Açıklama</span><textarea id="nDesc" rows="5" data-tp="descr_ph" placeholder="Ne eksik / ne soruluyor, nerede"></textarea></label>
+  <div class="row" style="margin-top:14px;justify-content:flex-end">
+    <button class="btn ghost" data-close="mNew" data-t="cancel">Vazgeç</button>
+    <button class="btn" id="nSave" data-t="save">Kaydet</button>
+  </div>
+</div></div>
+
+<!-- DETAIL -->
+<div class="modal" id="mDet" hidden><div class="box" id="detBox"></div></div>
+
+<!-- WHO -->
+<div class="modal" id="mWho" hidden><div class="box">
+  <div class="hd"><h2 data-t="who_title">Giriş</h2></div>
+  <p class="muted" data-t="who_hint">Adınızı seçin, PIN kodunuzu girin. PIN'i Proje Müdürü verir.</p>
+  <div class="pick" id="whoPick"></div>
+  <div id="pinBox" hidden>
+    <div class="row" style="margin-top:6px"><b id="pinName" style="flex:1"></b><button class="btn ghost sm" id="pinBack" data-t="back">← Geri</button></div>
+    <input type="password" id="pinInp" inputmode="numeric" autocomplete="current-password" data-tp="pin_ph" placeholder="PIN" style="margin-top:8px;font-size:20px;letter-spacing:6px;text-align:center">
+    <p class="ro" id="pinErr" hidden data-t="pin_wrong">PIN yanlış.</p>
+    <button class="btn" id="pinGo" style="width:100%;margin-top:10px" data-t="login">Giriş</button>
+  </div>
+  <p class="muted" id="whoNote"></p>
+</div></div>
+
+<!-- PM LOGIN -->
+<div class="modal" id="mPm" hidden><div class="box">
+  <div class="hd"><h2 data-t="pm_login">PM Girişi</h2><button class="x" data-close="mPm" aria-label="Kapat">×</button></div>
+  <p class="muted" data-t="pm_login_hint">Sorumlu atama, termin, kapatma ve ayarlar için PM şifresi.</p>
+  <input type="password" id="pmPass" data-tp="pass_ph" placeholder="Şifre" autocomplete="current-password">
+  <p class="ro" id="pmErr" hidden data-t="pass_wrong">Şifre yanlış.</p>
+  <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn ghost" data-close="mPm" data-t="cancel">Vazgeç</button><button class="btn" id="pmGo" data-t="login">Giriş</button></div>
+</div></div>
+
+<!-- PIN RESET -->
+<div class="modal" id="mPin" hidden><div class="box">
+  <div class="hd"><h2 id="mPinTitle"></h2><button class="x" data-close="mPin" aria-label="Kapat">×</button></div>
+  <input id="mPinInp" inputmode="numeric" data-tp="pin_new_ph" placeholder="PIN (4 hane)" style="font-size:20px;letter-spacing:6px;text-align:center">
+  <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn ghost" data-close="mPin" data-t="cancel">Vazgeç</button><button class="btn" id="mPinGo" data-t="save">Kaydet</button></div>
+</div></div>
+
+<!-- CONFIRM -->
+<div class="modal" id="mAsk" hidden><div class="box"><div id="askMsg" style="white-space:pre-wrap"></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn ghost" id="askNo" data-t="cancel">Vazgeç</button><button class="btn" id="askYes">Evet</button></div></div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ---------- i18n ---------- */
+const I18N={
+tr:{user:"Kullanıcı",logout:"Çıkış",back:"← Geri",pin_ph:"PIN",pin_new_ph:"PIN (4 hane)",pin_wrong:"PIN yanlış.",pin_reset:"PIN",pin_reset_title:"PIN belirle",pin_saved:"PIN kaydedildi",pin_min:"PIN en az 4 hane",login_req:"Giriş yapın",session_lost:"Oturum sona erdi, tekrar giriş yapın",offline:"Bağlantı yok — veriler güncellenemiyor",tab_list:"Açık Konular",tab_meet:"Toplantı",tab_dash:"Gösterge",tab_set:"Ayarlar",day_copy:"Günlük özet (WhatsApp)",search_ph:"Ara: no, konu, kişi",
+ f_to:"Bana atananlar",f_by:"Benim açtıklarım",f_late:"Termini geçenler",
+ meet_title:"Haftalık Koordinasyon Toplantısı",meet_hint:"Açık maddeler öncelik sırasıyla listelenir. Her madde için sorumlu, termin ve karar yazın. Sorumlusu veya termini olmayan maddeler kırmızı işaretlidir. Toplantı sonunda protokolü indirin.",
+ proto_copy:"Protokolü kopyala (WhatsApp)",proto_pdf:"Protokol PDF indir",dl_hint:"İndirirken tarayıcı onay ister; «İzin ver / Kaydet» deyin.",pdf_prep:"PDF hazırlanıyor…",pdf_load_fail:"PDF modülü yüklenemedi — internet bağlantısını kontrol edin",pdf_generated:"oluşturuldu",pdf_page:"Sayfa",pdf_pm:"Proje Müdürü",pdf_open_all:"Açık ve bekleyen maddeler",pdf_closed_all:"Kapatılan / iptal edilen maddeler",pdf_all_title:"Saha Takip Raporu",pdf_all_sub:"Tüm maddeler",
+ by_who:"Sorumluya göre açık",by_by:"Kim ne kadar madde açtı",wk_title:"Son 8 hafta: açılan / kapanan",
+ team:"Ekip Listesi",team_hint:"Herkes bu listeden adını seçip PIN ile girer. Pasif yapılan kişi giriş yapamaz ama eski kayıtları kalır.",name_ph:"Ad Soyad",role_ph:"Görev (Şantiye Şefi, Elektrik Mühendisi…)",add:"Ekle",
+ pm_pass:"PM Şifresi",pm_pass_hint:"Toplantıda sorumlu atama, kapatma ve bu ayarlar sayfası için gerekir.",new_pass_ph:"Yeni şifre",change_pass:"Şifreyi değiştir",export:"Dışa aktar",all_pdf:"Tüm maddeler PDF",
+ new_item:"+ Yeni Madde",new_title:"Yeni Madde",edit_title:"Düzenle",subject:"Konu",subject_ph:"Örn: Blok 2 ВРУ-2 kablo kanalı eksik",descr:"Açıklama",descr_ph:"Ne eksik / ne soruluyor, nerede",cancel:"Vazgeç",save:"Kaydet",
+ who_title:"Giriş",who_hint:"Adınızı seçin, PIN kodunuzu girin. PIN'i Proje Müdürü verir.",who_owner:"",who_ro:"Giriş yapmadan sadece okuyabilirsiniz.",team_empty:"Ekip listesi henüz boş. PM, «Ayarlar» sayfasından ekibi ekler.",
+ pm_login:"PM Girişi",pm_logout:"PM Çıkış",pm_login_hint:"Sorumlu atama, termin, kapatma ve ayarlar için PM şifresi.",pass_ph:"Şifre",pass_wrong:"Şifre yanlış.",login:"Giriş",pm_on:"PM modu açık",pm_off:"PM oturumu kapatıldı",
+ role_pm:"PM",role_site:"SAHA",no_login:"GİRİŞ YOK",yes:"Evet",
+ st_acik:"Açık",st_gorusuldu:"Görüşüldü",st_cozumde:"Çözümde",st_yapildi:"Yapıldı",st_kapali:"Kapalı",st_iptal:"İptal",
+ pr_kritik:"Kritik",pr_yuksek:"Yüksek",pr_normal:"Normal",pr_dusuk:"Düşük",prio_word:"öncelik",
+ ty_eksik:"Eksik",ty_soru:"Soru",ty_engel:"Engel",ty_karar:"Karar gerekli",ty_hata:"Hata",
+ c_open:"Tüm açık",c_yapildi:"Yapıldı",c_kapali:"Kapalı",c_all:"Hepsi",items_n:"madde",
+ empty_items:"Henüz madde yok. <b>+ Yeni Madde</b> ile sahadaki ilk eksiği ya da soruyu yazın.",empty_filter:"Bu filtrede madde yok.",empty_meet:"Toplantı listesi boş. Açık madde yok.",
+ opened_by:"Açan",assignee:"Sorumlu",due:"Termin",meeting:"Toplantı",closed:"Kapanış",decision:"Karar",decision_note:"Karar / Not",decision_ph:"Karar / yapılacak",priority:"Öncelik",comments:"Yorumlar",no_comments:"Yorum yok.",comment_ph:"Yorum yaz…",send:"Gönder",
+ not_assigned:"— seçilmedi —",no_assignee:"Sorumlu yok",no_due:"Termin yok",unassigned:"Sorumlusuz",
+ done_btn:"✔ Yaptım",done_toast:"işaretlendi: Yapıldı",undo:"Geri al",in_progress:"Çözümde",close:"Kapat",cancel_item:"İptal",reopen:"Yeniden aç",del:"Sil",edit:"Düzenle",detail:"Detay",
+ ask_cancel:"iptal edilsin mi?",ask_del:"kalıcı olarak silinsin mi?",deleted:"Silindi",del_fail:"Silinemedi",saved:"Kaydedildi",updated:"Güncellendi",closed_toast:"kapatıldı",
+ no_write:"Yazma yetkiniz yok",pick_first:"Önce adınızı seçin",title_req:"Konu yazın",save_fail:"Kaydedilemedi",readonly:"Salt okunur: paylaşım seviyeniz «Katkıda bulunan» olmalı.",noconn:"Bağlantı yok: panele giriş yapmış olmanız gerekir.",
+ meet_ro:"Toplantı modunda atama ve kapatma için PM girişi gerekir. Liste salt okunur.",g_done:"Yapıldı — PM onayı bekliyor",
+ copied:"Panoya kopyalandı",copy_fail:"Kopyalanamadı",dl_off:"İndirme bu görünümde kapalı — «Kopyala» kullanın",dl_ok:"İndirildi",dl_declined:"İndirme reddedildi",dl_fail:"İndirilemedi",
+ k_open:"Açık madde",k_crit:"Kritik",k_late:"Termini geçen",k_unass:"Sorumlusuz",k_done:"Yapıldı (onay bekliyor)",k_new7:"Son 7 gün açılan",k_closed7:"Son 7 gün kapanan",no_data:"Veri yok.",week:"Hafta",opened:"Açılan",closed_n:"Kapanan",
+ active:"Aktif yap",passive:"Pasif yap",nobody:"Henüz kimse eklenmedi.",name_req:"Ad Soyad yazın",added:"eklendi",pass_min:"En az 4 karakter",pass_changed:"Şifre değiştirildi",deleted_person:"(silinmiş)",
+ proto_h:"Haftalık Koordinasyon Toplantısı",proto_open:"Açık madde",status:"Durum",closed_week:"Bu hafta kapanan",done_week:"Yapıldı, onay bekliyor",proto_title:"Toplantı Protokolü",proto_sign:"Katılımcılar / imza",closed_items:"Bu hafta kapanan maddeler",type:"Tür",zone:"Bölge",subj_desc:"Konu / Açıklama",
+ day_h:"Günlük özet",day_open:"Açık",day_crit:"Kritik",day_late:"Termini geçen",day_unass:"Sorumlusuz",day_done:"Yapıldı, onay bekliyor",day_new:"Dün açılan",day_closed:"Bu hafta kapanan",day_late_list:"Termini geçenler"},
+ru:{user:"Пользователь",logout:"Выйти",back:"← Назад",pin_ph:"PIN",pin_new_ph:"PIN (4 цифры)",pin_wrong:"Неверный PIN.",pin_reset:"PIN",pin_reset_title:"Задать PIN",pin_saved:"PIN сохранён",pin_min:"PIN минимум 4 цифры",login_req:"Войдите",session_lost:"Сеанс истёк, войдите снова",offline:"Нет связи — данные не обновляются",tab_list:"Открытые вопросы",tab_meet:"Совещание",tab_dash:"Сводка",tab_set:"Настройки",day_copy:"Сводка дня (WhatsApp)",search_ph:"Поиск: №, тема, человек",
+ f_to:"Назначено мне",f_by:"Мои записи",f_late:"Просроченные",
+ meet_title:"Еженедельное координационное совещание",meet_hint:"Открытые пункты идут по приоритету. По каждому укажите ответственного, срок и решение. Пункты без ответственного или срока помечены красным. В конце скачайте протокол.",
+ proto_copy:"Скопировать протокол (WhatsApp)",proto_pdf:"Скачать протокол PDF",dl_hint:"При скачивании браузер запросит подтверждение — нажмите «Разрешить / Сохранить».",pdf_prep:"Готовим PDF…",pdf_load_fail:"Модуль PDF не загрузился — проверьте интернет",pdf_generated:"сформирован",pdf_page:"Стр.",pdf_pm:"Руководитель проекта",pdf_open_all:"Открытые и ожидающие пункты",pdf_closed_all:"Закрытые / отменённые пункты",pdf_all_title:"Отчёт по объекту",pdf_all_sub:"Все пункты",
+ by_who:"Открытые по ответственным",by_by:"Кто сколько записал",wk_title:"Последние 8 недель: открыто / закрыто",
+ team:"Список команды",team_hint:"Каждый выбирает своё имя и входит по PIN. Неактивный не может войти, но его записи остаются.",name_ph:"Фамилия Имя",role_ph:"Должность (прораб, инженер-электрик…)",add:"Добавить",
+ pm_pass:"Пароль PM",pm_pass_hint:"Нужен для назначения ответственных, закрытия пунктов и этой страницы.",new_pass_ph:"Новый пароль",change_pass:"Изменить пароль",export:"Экспорт",all_pdf:"Все пункты PDF",
+ new_item:"+ Новый пункт",new_title:"Новый пункт",edit_title:"Изменить",subject:"Тема",subject_ph:"Напр.: Блок 2 ВРУ-2 нет кабельного лотка",descr:"Описание",descr_ph:"Чего не хватает / в чём вопрос, где",cancel:"Отмена",save:"Сохранить",
+ who_title:"Вход",who_hint:"Выберите своё имя и введите PIN. PIN выдаёт руководитель проекта.",who_owner:"",who_ro:"Без входа — только просмотр.",team_empty:"Список команды пуст. PM добавляет людей в «Настройках».",
+ pm_login:"Вход PM",pm_logout:"Выход PM",pm_login_hint:"Пароль PM для назначения, сроков, закрытия и настроек.",pass_ph:"Пароль",pass_wrong:"Неверный пароль.",login:"Войти",pm_on:"Режим PM включён",pm_off:"Сеанс PM завершён",
+ role_pm:"PM",role_site:"ОБЪЕКТ",no_login:"НЕТ ВХОДА",yes:"Да",
+ st_acik:"Открыт",st_gorusuldu:"Обсуждён",st_cozumde:"В работе",st_yapildi:"Сделано",st_kapali:"Закрыт",st_iptal:"Отменён",
+ pr_kritik:"Критично",pr_yuksek:"Высокий",pr_normal:"Обычный",pr_dusuk:"Низкий",prio_word:"приоритет",
+ ty_eksik:"Недостаток",ty_soru:"Вопрос",ty_engel:"Препятствие",ty_karar:"Нужно решение",ty_hata:"Ошибка",
+ c_open:"Все открытые",c_yapildi:"Сделано",c_kapali:"Закрытые",c_all:"Все",items_n:"пункт.",
+ empty_items:"Пока нет пунктов. Нажмите <b>+ Новый пункт</b> и запишите первый недостаток или вопрос.",empty_filter:"По этому фильтру пунктов нет.",empty_meet:"Список совещания пуст. Открытых пунктов нет.",
+ opened_by:"Автор",assignee:"Ответственный",due:"Срок",meeting:"Совещание",closed:"Закрытие",decision:"Решение",decision_note:"Решение / заметка",decision_ph:"Решение / что сделать",priority:"Приоритет",comments:"Комментарии",no_comments:"Комментариев нет.",comment_ph:"Написать комментарий…",send:"Отправить",
+ not_assigned:"— не выбран —",no_assignee:"Нет ответственного",no_due:"Нет срока",unassigned:"Без ответственного",
+ done_btn:"✔ Сделано",done_toast:"отмечено: Сделано",undo:"Вернуть",in_progress:"В работе",close:"Закрыть",cancel_item:"Отменить",reopen:"Открыть заново",del:"Удалить",edit:"Изменить",detail:"Подробно",
+ ask_cancel:"отменить?",ask_del:"удалить безвозвратно?",deleted:"Удалено",del_fail:"Не удалось удалить",saved:"Сохранено",updated:"Обновлено",closed_toast:"закрыт",
+ no_write:"Нет прав на запись",pick_first:"Сначала выберите своё имя",title_req:"Напишите тему",save_fail:"Не сохранилось",readonly:"Только чтение: уровень доступа должен быть «Contributor».",noconn:"Нет соединения: нужно войти в аккаунт.",
+ meet_ro:"Для назначения и закрытия в режиме совещания нужен вход PM. Список только для чтения.",g_done:"Сделано — ждёт подтверждения PM",
+ copied:"Скопировано",copy_fail:"Не удалось скопировать",dl_off:"Скачивание здесь недоступно — используйте «Скопировать»",dl_ok:"Скачано",dl_declined:"Скачивание отклонено",dl_fail:"Не удалось скачать",
+ k_open:"Открытых",k_crit:"Критичных",k_late:"Просрочено",k_unass:"Без ответственного",k_done:"Сделано (ждёт подтв.)",k_new7:"Открыто за 7 дней",k_closed7:"Закрыто за 7 дней",no_data:"Нет данных.",week:"Неделя",opened:"Открыто",closed_n:"Закрыто",
+ active:"Активировать",passive:"Деактивировать",nobody:"Пока никого нет.",name_req:"Введите Фамилию Имя",added:"добавлен",pass_min:"Минимум 4 символа",pass_changed:"Пароль изменён",deleted_person:"(удалён)",
+ proto_h:"Еженедельное координационное совещание",proto_open:"Открытых пунктов",status:"Статус",closed_week:"Закрыто за неделю",done_week:"Сделано, ждёт подтверждения",proto_title:"Протокол совещания",proto_sign:"Участники / подписи",closed_items:"Закрытые за неделю пункты",type:"Тип",zone:"Зона",subj_desc:"Тема / Описание",
+ day_h:"Сводка дня",day_open:"Открытых",day_crit:"Критичных",day_late:"Просрочено",day_unass:"Без ответственного",day_done:"Сделано, ждёт подтверждения",day_new:"Открыто вчера",day_closed:"Закрыто за неделю",day_late_list:"Просроченные"}
+};
+let lang="tr";
+const t=k=>(I18N[lang][k]??I18N.tr[k]??k);
+function applyLang(){document.documentElement.lang=lang;document.querySelectorAll("[data-t]").forEach(e=>e.innerHTML=t(e.dataset.t));document.querySelectorAll("[data-tp]").forEach(e=>e.placeholder=t(e.dataset.tp));$("btnLang").textContent=lang==="tr"?"RU":"TR";$("askYes").textContent=t("yes");renderWho();renderList();if(document.querySelector("#toplanti.on"))renderMeet();if(document.querySelector("#gosterge.on"))renderDash();if(document.querySelector("#ayarlar.on"))renderSettings();if(!$("mDet").hidden)renderDetail();}
+/* ---------- constants ---------- */
+const PRANK={kritik:0,yuksek:1,normal:2,dusuk:3};
+const byPrio=(a,b)=>{const A=a[1],B=b[1];const p=(PRANK[A.priority]??2)-(PRANK[B.priority]??2);if(p)return p;return (A.at||"").localeCompare(B.at||"");};
+const PRIO_KEYS=["kritik","yuksek","normal","dusuk"];
+const OPEN=["acik","gorusuldu","cozumde"];      // truly open
+const ACTIVE=[...OPEN,"yapildi"];                 // shown in "all open" incl. done-awaiting-PM
+const LS="asys-saha:";
+const ST=s=>t("st_"+s), PR=p=>t("pr_"+p), TY=x=>x?t("ty_"+x):"";
+/* ---------- state ---------- */
+const SB_URL=(window.BOARD_CONFIG||{}).url||"";const SB_KEY=(window.BOARD_CONFIG||{}).key||"";
+let sb=null,db=null,token=null,isOwner=false,canWrite=true,profileName="";let myRole="site";
+let people={},items={},settings={},meId=null,isPm=false;
+let filt={st:"open",mine:null,q:""};let editingId=null;let autoMine=false;
+/* ---------- utils ---------- */
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const today=()=>{const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");};
+const now=()=>new Date().toISOString();
+const fmtD=s=>{if(!s)return "";const [y,m,d]=s.slice(0,10).split("-");return d+"."+m+"."+y;};
+const lsGet=k=>{try{return localStorage.getItem(LS+k);}catch(e){return null;}};
+const lsSet=(k,v)=>{try{v==null?localStorage.removeItem(LS+k):localStorage.setItem(LS+k,v);}catch(e){}};
+const ssGet=k=>{try{return sessionStorage.getItem(LS+k);}catch(e){return null;}};
+const ssSet=(k,v)=>{try{v==null?sessionStorage.removeItem(LS+k):sessionStorage.setItem(LS+k,v);}catch(e){}};
+let toastT;function toast(m){const e=$("toast");e.textContent=m;e.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>e.classList.remove("on"),2600);}
+function ask(msg,yes){return new Promise(res=>{const m=$("mAsk");$("askMsg").textContent=msg;$("askYes").textContent=yes||t("yes");m.hidden=false;const done=v=>{m.hidden=true;$("askYes").onclick=$("askNo").onclick=null;res(v);};$("askYes").onclick=()=>done(true);$("askNo").onclick=()=>done(false);});}
+async function sha(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}
+const personName=id=>people[id]?.name||(id?t("deleted_person"):"—");
+const opener=it=>it.by?personName(it.by):(it.byName||"—");
+const myName=()=>meId?personName(meId):(profileName||"");
+const isLate=it=>OPEN.includes(it.status)&&it.due&&it.due<today();
+const canDone=it=>ACTIVE.includes(it.status)&&(isPm||(meId&&(it.assignee===meId||it.by===meId)));
+document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$(b.dataset.close).hidden=true);
+async function copyText(s){try{await navigator.clipboard.writeText(s);toast(t("copied"));}catch(e){const ta=document.createElement("textarea");ta.value=s;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast(t("copied"));}catch(_){toast(t("copy_fail"));}ta.remove();}}
+/* ---------- lang ---------- */
+lang=lsGet("lang")||"tr";if(!I18N[lang])lang="tr";
+$("btnLang").onclick=()=>{lang=lang==="tr"?"ru":"tr";lsSet("lang",lang);applyLang();};
+/* ---------- tabs ---------- */
+function showTab(id){document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x.dataset.tab===id));document.querySelectorAll("main section").forEach(s=>s.classList.toggle("on",s.id===id));$("fab").hidden=id!=="liste";if(id==="toplanti")renderMeet();if(id==="gosterge")renderDash();if(id==="ayarlar")renderSettings();try{if(location.hash!=="#"+id)history.replaceState(null,"","#"+id);}catch(e){}}
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{if(b.dataset.tab==="ayarlar"&&!isPm)return;showTab(b.dataset.tab);});
+window.addEventListener("hashchange",()=>{const h=location.hash.replace("#","");if(["liste","toplanti","gosterge","ayarlar"].includes(h))showTab(h);});
+/* ---------- header / identity ---------- */
+function renderWho(){const e=$("whoami");const n=myName();e.innerHTML=n?`<span class="nm">${esc(n)}</span> `+(isPm?`<span class="role pm">${t("role_pm")}</span>`:`<span class="role">${t("role_site")}</span>`):`<span class="role">${t("no_login")}</span>`;$("btnPm").hidden=!meId;$("btnWho").hidden=!meId;$("btnPm").textContent=isPm?t("pm_logout"):t("pm_login");$("tabAyar").hidden=!isPm;if(!isPm&&document.querySelector("#ayarlar.on"))showTab("liste");}
+let pendingPerson=null;
+function openWho(){const pick=$("whoPick");pick.innerHTML="";pick.hidden=false;$("pinBox").hidden=true;$("pinErr").hidden=true;$("pinInp").value="";const act=Object.entries(people).filter(([,p])=>p.active!==false).sort((a,b)=>a[1].name.localeCompare(b[1].name,"tr"));
+  if(!act.length){pick.innerHTML=`<div class="empty">${t("team_empty")}</div>`;}
+  act.forEach(([id,p])=>{const b=document.createElement("button");b.innerHTML=`${esc(p.name)}<small>${esc(p.role||"")}</small>`;b.onclick=()=>{pendingPerson=id;$("pinName").textContent=p.name;pick.hidden=true;$("pinBox").hidden=false;setTimeout(()=>$("pinInp").focus(),50);};pick.appendChild(b);});
+  $("whoNote").textContent=t("who_ro");$("mWho").hidden=false;}
+$("pinBack").onclick=()=>openWho();
+$("pinInp").addEventListener("keydown",e=>{if(e.key==="Enter")$("pinGo").click();});
+$("pinGo").onclick=async()=>{const pin=$("pinInp").value.trim();if(!pendingPerson||!pin)return;$("pinGo").disabled=true;try{const {data,error}=await sb.rpc("board_login",{p_person:pendingPerson,p_pin:pin});if(error)throw error;token=data.token;meId=data.person;myRole=data.role;isPm=myRole==="pm";lsSet("token",token);lsSet("me",meId);$("mWho").hidden=true;autoMine=false;pickDefaultFilter();renderWho();renderList();}catch(e){console.error(e);$("pinErr").hidden=false;$("pinInp").value="";$("pinInp").focus();}$("pinGo").disabled=false;};
+$("btnWho").onclick=async()=>{if(!meId){openWho();return;}try{await sb.rpc("board_logout",{p_token:token});}catch(e){}token=null;meId=null;isPm=false;myRole="site";lsSet("token",null);lsSet("me",null);renderWho();renderList();openWho();};
+$("btnPm").onclick=async()=>{if(isPm){try{await sb.rpc("board_pm_logout",{p_token:token});}catch(e){}isPm=false;myRole="site";renderWho();renderList();toast(t("pm_off"));}else{$("pmPass").value="";$("pmErr").hidden=true;$("mPm").hidden=false;setTimeout(()=>$("pmPass").focus(),50);}};
+$("pmGo").onclick=async()=>{const {data,error}=await sb.rpc("board_pm_login",{p_token:token,p_pass:$("pmPass").value.trim()});if(!error&&data&&data.role==="pm"){isPm=true;myRole="pm";$("mPm").hidden=true;renderWho();renderList();toast(t("pm_on"));}else{$("pmErr").hidden=false;}};
+$("pmPass").addEventListener("keydown",e=>{if(e.key==="Enter")$("pmGo").click();});
+/* default filter: site staff with assigned items land on "assigned to me" */
+function pickDefaultFilter(){if(autoMine||isPm||!meId)return;autoMine=true;const mine=Object.values(items).some(it=>ACTIVE.includes(it.status)&&it.assignee===meId);if(mine){filt.mine="to";$("mineChips").querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x.dataset.mine==="to"));}}
+/* ---------- list ---------- */
+function stChips(){const c={open:0,yapildi:0,kapali:0,all:0};Object.values(items).forEach(it=>{c.all++;if(ACTIVE.includes(it.status))c.open++;if(it.status==="yapildi")c.yapildi++;if(it.status==="kapali")c.kapali++;});
+  const defs=[["open","c_open"],["yapildi","c_yapildi"],["kapali","c_kapali"],["all","c_all"]];
+  $("stChips").innerHTML=defs.map(([k,l])=>`<span class="chip ${filt.st===k?"on":""}" data-st="${k}">${t(l)}<b>${c[k]}</b></span>`).join("");
+  $("stChips").querySelectorAll(".chip").forEach(ch=>ch.onclick=()=>{filt.st=ch.dataset.st;renderList();});
+  const o=Object.values(items).filter(it=>OPEN.includes(it.status)).length;$("bOpen").hidden=!o;$("bOpen").textContent=o;const k=Object.values(items).filter(it=>OPEN.includes(it.status)&&(!it.assignee||it.priority==="kritik")).length;$("bMeet").hidden=!k;$("bMeet").textContent=k;}
+$("mineChips").querySelectorAll(".chip").forEach(ch=>ch.onclick=()=>{filt.mine=filt.mine===ch.dataset.mine?null:ch.dataset.mine;autoMine=true;$("mineChips").querySelectorAll(".chip").forEach(x=>x.classList.toggle("on",x.dataset.mine===filt.mine));renderList();});
+$("q").oninput=()=>{filt.q=$("q").value.trim().toLowerCase();renderList();};
+function visible(){return Object.entries(items).filter(([,it])=>{
+  if(filt.st==="open"&&!ACTIVE.includes(it.status))return false; if(filt.st!=="open"&&filt.st!=="all"&&it.status!==filt.st)return false;
+  if(filt.mine==="by"&&it.by!==meId)return false; if(filt.mine==="to"&&it.assignee!==meId)return false; if(filt.mine==="late"&&!isLate(it))return false;
+  if(filt.q){const s=[it.no,it.title,it.desc,personName(it.by),personName(it.assignee)].join(" ").toLowerCase();if(!s.includes(filt.q))return false;}
+  return true;}).sort((a,b)=>{const A=a[1],B=b[1];const r=x=>OPEN.includes(x.status)?0:x.status==="yapildi"?1:2;const d=r(A)-r(B);if(d)return d;const p=(PRANK[A.priority]??2)-(PRANK[B.priority]??2);if(p)return p;return (B.at||"").localeCompare(A.at||"");});}
+function renderList(){stChips();const v=visible();$("listMeta").textContent=v.length+" "+t("items_n");const box=$("items");
+  if(!Object.keys(items).length){box.innerHTML=`<div class="empty">${t("empty_items")}</div>`;return;}
+  if(!v.length){box.innerHTML=`<div class="empty">${t("empty_filter")}</div>`;return;}
+  box.innerHTML=v.map(([id,it])=>`<div class="it ${esc(it.priority)} ${it.status==="yapildi"||it.status==="kapali"||it.status==="iptal"?"done":""}" data-id="${id}"><div class="stripe"></div><div class="body"><div class="t"><span class="no">#${it.no}</span> ${esc(it.title)}</div>
+    <div class="m">${it.priority&&it.priority!=="normal"?`<span class="tag">${PR(it.priority)}</span>`:""}<span>${esc(opener(it))} · ${fmtD(it.at)}</span>${(it.comments||[]).length?`<span>💬 ${it.comments.length}</span>`:""}</div></div>
+    <div class="side"><span class="st ${esc(it.status)}">${ST(it.status)}</span>${it.assignee?`<span>→ ${esc(personName(it.assignee))}</span>`:""}${it.due?`<span class="${isLate(it)?"late":""}">⏱ ${fmtD(it.due)}</span>`:""}${canDone(it)&&it.status!=="yapildi"?`<button class="btn sm good doneBtn" data-id="${id}">${t("done_btn")}</button>`:""}</div></div>`).join("");
+  box.querySelectorAll(".it").forEach(e=>e.onclick=ev=>{if(ev.target.closest(".doneBtn"))return;openDetail(e.dataset.id);});
+  box.querySelectorAll(".doneBtn").forEach(b=>b.onclick=ev=>{ev.stopPropagation();markDone(b.dataset.id);});}
+async function markDone(id){const it=items[id];if(!it||!canDone(it))return;const d={...it,status:"yapildi",doneAt:now(),doneBy:meId||"",updatedAt:now()};if(await write("items",id,d))toast("#"+it.no+" "+t("done_toast"));}
+/* ---------- daily summary ---------- */
+function dayText(){const all=Object.values(items);const open=all.filter(i=>OPEN.includes(i.status));const y=new Date();y.setDate(y.getDate()-1);const yi=y.toISOString().slice(0,10);const wk=weekAgo(today());const late=open.filter(isLate);
+  let s=`Board @ ASYS · Wildberries Almaty · ${fmtD(today())}\n`+
+  `${t("day_open")}: ${open.length} · ${t("day_crit")}: ${open.filter(i=>i.priority==="kritik").length} · ${t("day_unass")}: ${open.filter(i=>!i.assignee).length}\n`+
+  `${t("day_late")}: ${late.length} · ${t("day_done")}: ${all.filter(i=>i.status==="yapildi").length}\n`+
+  `${t("day_new")}: ${all.filter(i=>(i.at||"").slice(0,10)===yi).length} · ${t("day_closed")}: ${all.filter(i=>i.status==="kapali"&&(i.closedAt||"").slice(0,10)>=wk).length}\n`;
+  if(late.length){s+=`\n${t("day_late_list")}:\n`+late.sort((a,b)=>(a.due||"").localeCompare(b.due||"")).map(i=>`#${i.no} ${i.title} — ${personName(i.assignee)} (${fmtD(i.due)})`).join("\n")+"\n";}
+  return s;}
+$("dayCopy").onclick=()=>copyText(dayText());
+/* ---------- new item ---------- */
+$("fab").onclick=()=>{if(!meId){openWho();toast(t("pick_first"));return;}editingId=null;$("newTitle").textContent=t("new_title");$("nTitle").value="";$("nDesc").value="";$("newWho").textContent=t("opened_by")+": "+myName()+" · "+fmtD(today());$("mNew").hidden=false;setTimeout(()=>$("nTitle").focus(),50);};
+$("nSave").onclick=async()=>{const title=$("nTitle").value.trim();if(!title){toast(t("title_req"));$("nTitle").focus();return;}
+  if(editingId){const it=items[editingId];const d={...it,title,desc:$("nDesc").value.trim(),updatedAt:now()};if(await write("items",editingId,d)){$("mNew").hidden=true;toast(t("updated"));}return;}
+  if(!token){toast(t("login_req"));openWho();return;}
+  try{const r=await rpc("board_create_item",{p_token:token,p_title:title,p_descr:$("nDesc").value.trim()});items[r.id]=rowToItem(r);rerender();$("mNew").hidden=true;toast("#"+r.no+" · "+t("saved"));}catch(e){rpcErr(e);}};
+function rowToItem(r){return {no:r.no,title:r.title,desc:r.descr||"",type:"",zone:"",priority:r.priority,status:r.status,by:r.by_person||"",byName:r.by_name||"",at:r.at,assignee:r.assignee||"",due:r.due||"",decision:r.decision||"",meeting:r.meeting||"",closedAt:r.closed_at||"",doneAt:r.done_at||"",doneBy:r.done_by||"",photos:[],comments:r.comments||[],updatedAt:r.updated_at};}
+function rpcErr(e){const m=(e&&e.message)||"";if(/not_logged_in/.test(m)){token=null;meId=null;isPm=false;lsSet("token",null);renderWho();toast(t("session_lost"));openWho();return;}if(/pm_required|not_allowed/.test(m)){toast(t("no_write"));return;}console.error(e);toast(t("save_fail")+(m?" ("+m.slice(0,40)+")":""));}
+async function rpc(name,args){const {data,error}=await sb.rpc(name,args);if(error)throw error;return data;}
+async function write(col,id,data){if(!sb||!token){toast(t("login_req"));openWho();return false;}
+  try{
+    if(col==="items"){const r=await rpc("board_update_item",{p_token:token,p_id:id,p_patch:data});items[id]=rowToItem(r);rerender();return true;}
+    if(col==="people"){const r=await rpc("board_upsert_person",{p_token:token,p_id:id,p_name:data.name,p_role:data.role||"",p_active:data.active!==false,p_pin:data.pin||null});people[r.id]={name:r.name,role:r.role,active:r.active};rerender();return true;}
+    if(col==="settings"){await rpc("board_set_setting",{p_token:token,p_key:id,p_value:data});settings=data;return true;}
+    return false;
+  }catch(e){rpcErr(e);return false;}}
+function rerender(){renderList();const typing=sel=>{const a=document.activeElement;return a&&a.closest&&a.closest(sel)&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName);};if(document.querySelector("#toplanti.on")&&!typing(".mt"))renderMeet();if(document.querySelector("#gosterge.on"))renderDash();if(document.querySelector("#ayarlar.on"))renderSettings();if(!$("mDet").hidden&&!typing("#detBox"))renderDetail();}
+/* ---------- detail ---------- */
+let detId=null;
+function openDetail(id){detId=id;renderDetail();$("mDet").hidden=false;}
+function renderDetail(){const it=items[detId];if(!it){$("mDet").hidden=true;return;}const b=$("detBox");const canEditOwn=it.by===meId&&it.status==="acik";
+  b.innerHTML=`<div class="hd"><h2 class="${it.status==="yapildi"?"strike":""}"><span class="no">#${it.no}</span> ${esc(it.title)}</h2><button class="x" id="detX" aria-label="Kapat">×</button></div>
+  <div class="row" style="margin-top:6px"><span class="st ${esc(it.status)}">${ST(it.status)}</span><span class="tag">${PR(it.priority)}</span></div>
+  <div class="kv"><span class="k">${t("opened_by")}</span><span>${esc(opener(it))} · ${fmtD(it.at)}</span><span class="k">${t("assignee")}</span><span>${esc(personName(it.assignee))}</span><span class="k">${t("due")}</span><span class="${isLate(it)?"late":""}">${fmtD(it.due)||"—"}</span>${it.meeting?`<span class="k">${t("meeting")}</span><span>${fmtD(it.meeting)}</span>`:""}${it.doneAt?`<span class="k">${ST("yapildi")}</span><span>${esc(personName(it.doneBy))} · ${fmtD(it.doneAt)}</span>`:""}${it.closedAt?`<span class="k">${t("closed")}</span><span>${fmtD(it.closedAt)}</span>`:""}</div>
+  ${it.desc?`<div class="desc">${esc(it.desc)}</div>`:""}
+  ${it.decision?`<div class="pmbox"><span class="lb">${t("decision").toUpperCase()}</span><div class="desc" style="margin:0">${esc(it.decision)}</div></div>`:""}
+  <h3 style="margin-top:14px">${t("comments")}</h3>
+  <div id="cmList">${(it.comments||[]).map(c=>`<div class="cm"><div class="who">${esc(c.byName)} · ${fmtD(c.at)} ${new Date(c.at).toTimeString().slice(0,5)}</div><div class="tx">${esc(c.text)}</div></div>`).join("")||`<div class="muted">${t("no_comments")}</div>`}</div>
+  <div class="row" style="margin-top:8px"><input id="cmText" placeholder="${t("comment_ph")}" style="flex:1;min-width:160px"><button class="btn sm" id="cmAdd">${t("send")}</button></div>
+  ${isPm?`<div class="pmbox"><span class="lb">PM</span><div class="grid2"><label class="f">${t("assignee")}<select id="dAss">${assOptions(it.assignee)}</select></label><label class="f">${t("due")}<input type="date" id="dDue" value="${esc(it.due||"")}"></label><label class="f">${t("priority")}<select id="dPrio">${prioOptions(it.priority)}</select></label></div>
+    <label class="f" style="margin-top:6px">${t("decision_note")}<textarea id="dDec" rows="2">${esc(it.decision||"")}</textarea></label>
+    <div class="row" style="margin-top:8px"><button class="btn sm ghost" id="dSave">${t("save")}</button>${ACTIVE.includes(it.status)?`<button class="btn sm good" id="dKap">${t("close")}</button><button class="btn sm ghost" id="dIpt">${t("cancel_item")}</button>`:`<button class="btn sm ghost" id="dAc">${t("reopen")}</button>`}<button class="btn sm danger" id="dDel" style="margin-left:auto">${t("del")}</button></div></div>`:""}
+  <div class="row" style="margin-top:12px;justify-content:flex-end">${canDone(it)&&it.status!=="yapildi"?`<button class="btn good sm" id="dDone">${t("done_btn")}</button>`:""}${it.status==="yapildi"&&canDone(it)?`<button class="btn ghost sm" id="dUndo">${t("undo")}</button>`:""}${canEditOwn?`<button class="btn ghost sm" id="dEdit">${t("edit")}</button>`:""}<button class="btn ghost sm" id="detClose">${t("close")}</button></div>`;
+  $("detX").onclick=$("detClose").onclick=()=>$("mDet").hidden=true;
+  $("cmAdd").onclick=async()=>{const x=$("cmText").value.trim();if(!x)return;if(!meId){openWho();return;}try{const r=await rpc("board_add_comment",{p_token:token,p_id:detId,p_text:x});items[detId]=rowToItem(r);$("cmText").value="";rerender();}catch(e){rpcErr(e);}};
+  $("cmText").addEventListener("keydown",e=>{if(e.key==="Enter")$("cmAdd").click();});
+  if($("dDone"))$("dDone").onclick=()=>markDone(detId);
+  if($("dUndo"))$("dUndo").onclick=async()=>{const d={...it,status:it.assignee?"gorusuldu":"acik",doneAt:"",doneBy:"",updatedAt:now()};await write("items",detId,d);};
+  if($("dEdit"))$("dEdit").onclick=()=>{editingId=detId;$("newTitle").textContent="#"+it.no+" "+t("edit_title");$("nTitle").value=it.title;$("nDesc").value=it.desc||"";$("newWho").textContent="";$("mDet").hidden=true;$("mNew").hidden=false;};
+  if(isPm){const pmData=()=>({...it,assignee:$("dAss").value,due:$("dDue").value,priority:$("dPrio").value,decision:$("dDec").value.trim(),updatedAt:now()});
+    $("dSave").onclick=async()=>{const d=pmData();if(d.assignee&&d.status==="acik")d.status="gorusuldu";if(await write("items",detId,d))toast(t("saved"));};
+    if($("dKap"))$("dKap").onclick=async()=>{const d=pmData();d.status="kapali";d.closedAt=now();if(await write("items",detId,d))toast("#"+it.no+" "+t("closed_toast"));};
+    if($("dIpt"))$("dIpt").onclick=async()=>{if(!await ask("#"+it.no+" "+t("ask_cancel"),t("cancel_item")))return;const d=pmData();d.status="iptal";d.closedAt=now();await write("items",detId,d);};
+    if($("dAc"))$("dAc").onclick=async()=>{const d=pmData();d.status="acik";d.closedAt="";d.doneAt="";await write("items",detId,d);};
+    $("dDel").onclick=async()=>{if(!await ask("#"+it.no+" "+t("ask_del"),t("del")))return;try{await rpc("board_delete_item",{p_token:token,p_id:detId});delete items[detId];$("mDet").hidden=true;rerender();toast(t("deleted"));}catch(e){rpcErr(e);}};}
+}
+function prioOptions(sel){return PRIO_KEYS.map(k=>`<option value="${k}" ${k===sel?"selected":""}>${PR(k)}</option>`).join("");}
+function assOptions(sel){return `<option value="">${t("not_assigned")}</option>`+Object.entries(people).filter(([id,p])=>p.active!==false||id===sel).sort((a,b)=>a[1].name.localeCompare(b[1].name,"tr")).map(([id,p])=>`<option value="${id}" ${id===sel?"selected":""}>${esc(p.name)}</option>`).join("");}
+/* ---------- meeting ---------- */
+$("meetDate").value=today();
+function meetList(){return Object.entries(items).filter(([,it])=>OPEN.includes(it.status)).sort(byPrio);}
+function doneList(){return Object.entries(items).filter(([,it])=>it.status==="yapildi").sort(byPrio);}
+function renderMeet(){const L=meetList(),D=doneList();const box=$("meetBody");if(!L.length&&!D.length){box.innerHTML=`<div class="empty">${t("empty_meet")}</div>`;return;}
+  const pm=isPm;let html=pm?"":`<div class="card"><span class="ro">${t("meet_ro")}</span></div>`;
+  html+=groupHtml(L,pm);
+  if(D.length){html+=`<div class="ghead">${t("g_done")} (${D.length})</div>`+D.map(([id,it])=>`<div class="mt done" data-id="${id}"><div class="stripe"></div><div class="in"><div class="row"><span class="no">#${it.no}</span><b class="strike" style="flex:1;min-width:120px;overflow-wrap:anywhere">${esc(it.title)}</b><span class="st yapildi">${ST("yapildi")}</span></div>
+   <div class="muted" style="margin-top:2px">${esc(personName(it.assignee)||"—")}${it.doneAt?" · "+fmtD(it.doneAt):""}${it.decision?" · "+esc(it.decision):""}</div>
+   ${pm?`<div class="acts"><button class="btn sm good aKap">${t("close")}</button><button class="btn sm ghost aUndo">${t("reopen")}</button><button class="btn sm danger aDel">${t("del")}</button><button class="btn sm ghost aDet" style="margin-left:auto">${t("detail")}</button></div>`:""}</div></div>`).join("");}
+  box.innerHTML=html;if(!pm){box.querySelectorAll(".mt").forEach(el=>el.onclick=()=>openDetail(el.dataset.id));return;}
+  box.querySelectorAll(".mt").forEach(el=>{const id=el.dataset.id;const it=items[id];
+    const get=()=>{const q=c=>el.querySelector(c);return {...it,assignee:q(".mAss")?q(".mAss").value:it.assignee,due:q(".mDue")?q(".mDue").value:it.due,priority:q(".mPrio")?q(".mPrio").value:it.priority,decision:q(".mDec")?q(".mDec").value.trim():it.decision,meeting:$("meetDate").value,updatedAt:now()};};
+    const on=(c,f)=>{const e=el.querySelector(c);if(e)e.onclick=f;};
+    on(".aSave",async()=>{const d=get();if(d.assignee&&d.status==="acik")d.status="gorusuldu";if(await write("items",id,d))toast("#"+it.no+" · "+t("saved"));});
+    on(".aCoz",async()=>{const d=get();d.status="cozumde";await write("items",id,d);});
+    on(".aKap",async()=>{const d=get();d.status="kapali";d.closedAt=now();if(await write("items",id,d))toast("#"+it.no+" "+t("closed_toast"));});
+    on(".aUndo",async()=>{const d={...it,status:it.assignee?"gorusuldu":"acik",doneAt:"",doneBy:"",updatedAt:now()};await write("items",id,d);});
+    on(".aDel",async()=>{if(!await ask("#"+it.no+" "+t("ask_del"),t("del")))return;try{await rpc("board_delete_item",{p_token:token,p_id:id});delete items[id];rerender();toast(t("deleted"));}catch(e){rpcErr(e);}});
+    on(".aDet",()=>openDetail(id));});}
+function groupHtml(L,pm){let out="",cur=null;L.forEach(([id,it])=>{if(it.priority!==cur){cur=it.priority;out+=`<div class="ghead">${PR(cur)} ${t("prio_word")}</div>`;}
+  const miss=[];if(!it.assignee)miss.push(t("no_assignee"));if(!it.due)miss.push(t("no_due"));
+  out+=`<div class="mt ${esc(it.priority)}" data-id="${id}"><div class="stripe"></div><div class="in"><div class="row"><span class="no">#${it.no}</span><b style="flex:1;min-width:120px;overflow-wrap:anywhere">${esc(it.title)}</b><span class="st ${esc(it.status)}">${ST(it.status)}</span>${miss.map(m=>`<span class="miss">${m}</span>`).join("")}</div>
+   <div class="muted" style="margin-top:2px">${esc(opener(it))} · ${fmtD(it.at)}${it.assignee?" · → "+esc(personName(it.assignee)):""}${it.due?` · <span class="${isLate(it)?"late":""}">${fmtD(it.due)}</span>`:""}</div>
+   ${it.desc?`<div class="desc">${esc(it.desc)}</div>`:""}
+   ${pm?`<div class="ctl"><select class="mAss">${assOptions(it.assignee)}</select><input type="date" class="mDue" value="${esc(it.due||"")}"><select class="mPrio">${prioOptions(it.priority)}</select><input class="mDec wide" placeholder="${t("decision_ph")}" value="${esc(it.decision||"")}"></div>
+   <div class="acts"><button class="btn sm ghost aSave">${t("save")}</button><button class="btn sm aCoz">${t("in_progress")}</button><button class="btn sm good aKap">${t("close")}</button><button class="btn sm ghost aDet" style="margin-left:auto">${t("detail")}</button></div>`:(it.decision?`<div class="pmbox"><span class="lb">${t("decision").toUpperCase()}</span>${esc(it.decision)}</div>`:"")}
+  </div></div>`;});return out;}
+/* protocol */
+function weekAgo(d){const x=new Date(d);x.setDate(x.getDate()-7);return x.toISOString().slice(0,10);}
+function protoText(){const d=$("meetDate").value;const L=meetList(),D=doneList();let s=`ASYS Engineering · Wildberries Almaty\n${t("proto_h")} · ${fmtD(d)}\n${t("proto_open")}: ${L.length}\n`;let cur=null;L.forEach(([,it])=>{if(it.priority!==cur){cur=it.priority;s+=`\n■ ${PR(cur)} ${t("prio_word")}\n`;}s+=`#${it.no} ${it.title}\n   ${t("status")}: ${ST(it.status)}${it.assignee?" · "+t("assignee")+": "+personName(it.assignee):" · "+t("no_assignee").toUpperCase()}${it.due?" · "+t("due")+": "+fmtD(it.due):""}${it.decision?"\n   "+t("decision")+": "+it.decision:""}\n`;});
+  if(D.length)s+=`\n☐ ${t("done_week")} (${D.length}): `+D.map(([,it])=>"#"+it.no).join(", ")+"\n";
+  const closed=Object.values(items).filter(it=>it.status==="kapali"&&it.closedAt&&it.closedAt.slice(0,10)>=weekAgo(d));if(closed.length)s+=`\n✔ ${t("closed_week")} (${closed.length}): `+closed.map(it=>"#"+it.no).join(", ")+"\n";return s;}
+$("protoCopy").onclick=()=>copyText(protoText());
+/* ---------- PDF (pdfmake, lazy-loaded from cdnjs) ---------- */
+let pdfLoading=null;
+function loadPdf(){if(window.pdfMake&&window.pdfMake.vfs)return Promise.resolve();if(pdfLoading)return pdfLoading;
+  const add=src=>new Promise((res,rej)=>{const s=document.createElement("script");s.src=src;s.onload=res;s.onerror=()=>rej(new Error("load "+src));document.head.appendChild(s);});
+  pdfLoading=add("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js").then(()=>add("https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.js")).catch(e=>{pdfLoading=null;throw e;});return pdfLoading;}
+const PDF={ink:"#1C2024",ink2:"#5B6670",line:"#D8DCD9",amber:"#F2A900",rowalt:"#F4F5F3",red:"#C8402E",green:"#2E8B57",
+  prio:{kritik:"#C8402E",yuksek:"#E07B16",normal:"#5B6670",dusuk:"#8A96A0"},
+  st:{acik:"#C9A227",gorusuldu:"#4A7BD0",cozumde:"#1F8A8A",yapildi:"#1F8A8A",kapali:"#2E8B57",iptal:"#9AA3AB"}};
+const LOGO_DATA=document.querySelector(".logo").src;
+function pdfBase(title,subtitle,content,landscape){const gen=new Date();const stamp=fmtD(today())+" "+String(gen.getHours()).padStart(2,"0")+":"+String(gen.getMinutes()).padStart(2,"0");
+  return {pageSize:"A4",pageOrientation:landscape?"landscape":"portrait",pageMargins:[36,84,36,46],
+    header:{margin:[36,22,36,0],stack:[{columns:[{image:LOGO_DATA,width:78,margin:[0,2,0,0]},{width:"*",stack:[{text:title,fontSize:15,bold:true,color:PDF.ink},{text:subtitle,fontSize:9,color:PDF.ink2,margin:[0,2,0,0]}],margin:[14,2,0,0]},{width:"auto",stack:[{text:"ASYS Engineering",fontSize:9,bold:true,color:PDF.ink,alignment:"right"},{text:"Board @ ASYS · Wildberries Almaty",fontSize:8,color:PDF.ink2,alignment:"right"}],margin:[0,6,0,0]}]},{canvas:[{type:"line",x1:0,y1:0,x2:landscape?770:523,y2:0,lineWidth:2,lineColor:PDF.amber}],margin:[0,8,0,0]}]},
+    footer:(cur,tot)=>({margin:[36,12,36,0],columns:[{text:"ASYS Engineering · "+t("pdf_generated")+" "+stamp,fontSize:7.5,color:PDF.ink2},{text:t("pdf_page")+" "+cur+" / "+tot,fontSize:7.5,color:PDF.ink2,alignment:"right"}]}),
+    content,defaultStyle:{font:"Roboto",fontSize:8.5,color:PDF.ink,lineHeight:1.15},
+    styles:{h2:{fontSize:11,bold:true,color:PDF.ink,margin:[0,12,0,5]},th:{fontSize:7.5,bold:true,color:"#FFFFFF",fillColor:PDF.ink},grp:{fontSize:8,bold:true,color:PDF.ink,fillColor:"#E9EBE7"},small:{fontSize:7.5,color:PDF.ink2}}};}
+function pdfKpis(list){const all=Object.values(items);const open=all.filter(i=>OPEN.includes(i.status));const wk=weekAgo(today());
+  const k=[[t("k_open"),open.length,PDF.amber],[t("k_crit"),open.filter(i=>i.priority==="kritik").length,PDF.red],[t("k_late"),open.filter(isLate).length,PDF.red],[t("k_unass"),open.filter(i=>!i.assignee).length,"#4A7BD0"],[t("k_done"),all.filter(i=>i.status==="yapildi").length,"#1F8A8A"],[t("k_closed7"),all.filter(i=>i.status==="kapali"&&(i.closedAt||"").slice(0,10)>=wk).length,PDF.green]];
+  return {table:{widths:k.map(()=>"*"),body:[k.map(([l,v,c])=>({stack:[{text:String(v),fontSize:16,bold:true,color:c},{text:l,fontSize:7,color:PDF.ink2}],margin:[6,4,6,4]}))]},layout:{hLineWidth:()=>0,vLineWidth:(i)=>i===0?0:0.5,vLineColor:()=>PDF.line,fillColor:()=>PDF.rowalt},margin:[0,0,0,10]};}
+const pdfSt=s=>({text:ST(s),color:PDF.st[s]||PDF.ink,bold:true});
+const pdfPr=p=>({text:PR(p),color:PDF.prio[p]||PDF.ink,bold:true});
+function pdfItemsTable(L,withDesc){const H=["№",t("priority"),t("subject"),t("opened_by"),t("assignee"),t("due"),t("decision"),t("status")].map(x=>({text:x,style:"th"}));
+  const body=[H];let cur=null;
+  L.forEach(it=>{if(it.priority!==cur){cur=it.priority;body.push([{text:(PR(cur)+" "+t("prio_word")).toUpperCase(),style:"grp",colSpan:8},{},{},{},{},{},{},{}]);}
+    body.push([{text:String(it.no),bold:true},pdfPr(it.priority),{stack:[{text:it.title,bold:true},...(withDesc&&it.desc?[{text:it.desc,style:"small",margin:[0,1,0,0]}]:[])]},{text:opener(it)+"\n"+fmtD(it.at)},it.assignee?{text:personName(it.assignee)}:{text:t("no_assignee"),color:PDF.red,bold:true},{text:fmtD(it.due)||"",color:isLate(it)?PDF.red:PDF.ink,bold:isLate(it)},{text:it.decision||""},pdfSt(it.status)]);});
+  return {table:{headerRows:1,dontBreakRows:true,keepWithHeaderRows:1,widths:[18,44,"*",62,74,50,118,48],body},layout:{hLineWidth:(i,n)=>i===0||i===n.table.body.length?0.8:0.4,vLineWidth:()=>0,hLineColor:()=>PDF.line,fillColor:(r)=>r>0&&r%2===0?PDF.rowalt:null,paddingTop:()=>3,paddingBottom:()=>3}};}
+const pdfSec=(title,tbl)=>rowsOf(tbl)<=8?{unbreakable:true,stack:[{text:title,style:"h2"},tbl]}:[{text:title,style:"h2"},tbl];
+const rowsOf=tbl=>tbl.table.body.length;
+function pdfSimpleTable(H,rows,widths){return {table:{headerRows:1,dontBreakRows:true,keepWithHeaderRows:1,widths,body:[H.map(x=>({text:x,style:"th"})),...rows]},layout:{hLineWidth:()=>0.4,vLineWidth:()=>0,hLineColor:()=>PDF.line,fillColor:(r)=>r>0&&r%2===0?PDF.rowalt:null,paddingTop:()=>3,paddingBottom:()=>3}};}
+async function makePdf(filename,doc){toast(t("pdf_prep"));try{await loadPdf();}catch(e){console.error(e);toast(t("pdf_load_fail"));return;}
+  try{const blob=await new Promise((res,rej)=>{try{pdfMake.createPdf(doc).getBlob(res);}catch(e){rej(e);}});await saveFile(filename,blob);}catch(e){console.error(e);toast(t("dl_fail"));}}
+function protoPdf(){const d=$("meetDate").value;const L=meetList().map(x=>x[1]),D=doneList().map(x=>x[1]);const closed=Object.values(items).filter(it=>it.status==="kapali"&&it.closedAt&&it.closedAt.slice(0,10)>=weekAgo(d)).sort((a,b)=>a.no-b.no);
+  const content=[pdfKpis(),{text:t("proto_open")+" ("+L.length+")",style:"h2",margin:[0,0,0,5]},L.length?pdfItemsTable(L,true):{text:t("empty_meet"),style:"small"}];
+  if(D.length)content.push(pdfSec(t("done_week")+" ("+D.length+")",pdfSimpleTable(["№",t("subject"),t("assignee"),ST("yapildi"),t("decision")],D.map(it=>[{text:String(it.no),bold:true},{text:it.title},{text:personName(it.assignee)},{text:fmtD(it.doneAt)},{text:it.decision||""}]),[20,"*",80,50,160])));
+  if(closed.length)content.push(pdfSec(t("closed_items")+" ("+closed.length+")",pdfSimpleTable(["№",t("subject"),t("assignee"),t("closed")],closed.map(it=>[{text:String(it.no),bold:true},{text:it.title},{text:personName(it.assignee)},{text:fmtD(it.closedAt)}]),[20,"*",100,60])));
+  content.push({margin:[0,26,0,0],columns:[{stack:[{text:t("pdf_pm"),style:"small"},{canvas:[{type:"line",x1:0,y1:22,x2:200,y2:22,lineWidth:0.6,lineColor:PDF.ink}]}]},{stack:[{text:t("proto_sign"),style:"small"},{canvas:[{type:"line",x1:0,y1:22,x2:420,y2:22,lineWidth:0.6,lineColor:PDF.ink}]}]}]});
+  makePdf("Protokol_"+d+".pdf",pdfBase(t("proto_h"),t("proto_title")+" · "+fmtD(d),content,true));}
+function allPdf(){const all=Object.values(items).sort((a,b)=>a.no-b.no);const open=all.filter(it=>ACTIVE.includes(it.status)).sort((a,b)=>{const p=(PRANK[a.priority]??2)-(PRANK[b.priority]??2);return p||a.no-b.no;});const done=all.filter(it=>!ACTIVE.includes(it.status));
+  const content=[pdfKpis(),{text:t("pdf_open_all")+" ("+open.length+")",style:"h2",margin:[0,0,0,5]},open.length?pdfItemsTable(open,true):{text:t("empty_meet"),style:"small"}];
+  if(done.length)content.push(pdfSec(t("pdf_closed_all")+" ("+done.length+")",pdfSimpleTable(["№",t("subject"),t("opened_by"),t("assignee"),t("closed"),t("status")],done.map(it=>[{text:String(it.no),bold:true},{text:it.title},{text:opener(it)},{text:personName(it.assignee)},{text:fmtD(it.closedAt)},pdfSt(it.status)]),[20,"*",80,80,50,46])));
+  makePdf("Board_ASYS_"+today()+".pdf",pdfBase(t("pdf_all_title"),t("pdf_all_sub")+" · "+fmtD(today()),content,true));}
+$("protoPdf").onclick=protoPdf;$("allPdf").onclick=allPdf;
+
+async function saveFile(filename,data){try{const blob=data instanceof Blob?data:new Blob([data]);const u=URL.createObjectURL(blob);const a=document.createElement("a");a.href=u;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);toast(t("dl_ok")+": "+filename);}catch(e){console.error(e);toast(t("dl_fail"));}}
+/* ---------- dashboard ---------- */
+function renderDash(){const all=Object.values(items);const open=all.filter(it=>OPEN.includes(it.status));const wk=weekAgo(today());
+  const k=[["k_open",open.length,"a"],["k_crit",open.filter(i=>i.priority==="kritik").length,"k"],["k_late",open.filter(isLate).length,"l2"],["k_unass",open.filter(i=>!i.assignee).length,"b"],["k_done",all.filter(i=>i.status==="yapildi").length,"d"],["k_new7",all.filter(i=>(i.at||"").slice(0,10)>=wk).length,""],["k_closed7",all.filter(i=>i.status==="kapali"&&(i.closedAt||"").slice(0,10)>=wk).length,"g"]];
+  $("kpis").innerHTML=k.map(([l,v,c])=>`<div class="kpi ${c}"><div class="v">${v}</div><div class="l">${t(l)}</div></div>`).join("");
+  const bars=(el,map,lab)=>{const ent=Object.entries(map).sort((a,b)=>b[1].n-a[1].n);const mx=Math.max(1,...ent.map(e=>e[1].n));$(el).innerHTML=ent.length?ent.map(([key,v])=>`<div class="bar"><span class="lab" title="${esc(lab(key))}">${esc(lab(key))}</span><div class="tr"><i style="width:${Math.round(v.n/mx*100)}%"></i></div><span class="n">${v.n}${v.k?` <span class="late">(${v.k})</span>`:""}</span></div>`).join(""):`<div class="muted">${t("no_data")}</div>`;};
+  const agg=(list,f)=>{const m={};list.forEach(it=>{const key=f(it)||"—";m[key]=m[key]||{n:0,k:0};m[key].n++;if(it.priority==="kritik")m[key].k++;});return m;};
+  bars("bWho",agg(open,i=>i.assignee||""),key=>key==="—"?t("unassigned"):personName(key));bars("bBy",agg(all,i=>i.by||""),key=>key==="—"?"—":personName(key));
+  const weeks=[];for(let w=7;w>=0;w--){const e=new Date();e.setDate(e.getDate()-w*7);const s=new Date(e);s.setDate(s.getDate()-6);const si=s.toISOString().slice(0,10),ei=e.toISOString().slice(0,10);weeks.push([fmtD(si).slice(0,5)+"–"+fmtD(ei).slice(0,5),all.filter(i=>{const d=(i.at||"").slice(0,10);return d>=si&&d<=ei;}).length,all.filter(i=>i.status==="kapali"&&(i.closedAt||"").slice(0,10)>=si&&(i.closedAt||"").slice(0,10)<=ei).length]);}
+  $("wkTbl").innerHTML=`<tr><th>${t("week")}</th><th>${t("opened")}</th><th>${t("closed_n")}</th></tr>`+weeks.map(w=>`<tr><td>${w[0]}</td><td>${w[1]}</td><td>${w[2]}</td></tr>`).join("");}
+/* ---------- settings ---------- */
+function renderSettings(){const box=$("people");const ent=Object.entries(people).sort((a,b)=>a[1].name.localeCompare(b[1].name,"tr"));box.innerHTML=ent.length?ent.map(([id,p])=>`<div class="person ${p.active===false?"off":""}"><span class="nm">${esc(p.name)}<span class="muted" style="font-weight:600">${p.role?" · "+esc(p.role):""}</span></span><button class="btn sm ghost pr" data-id="${id}">${t("pin_reset")}</button><button class="btn sm ghost tg" data-id="${id}">${p.active===false?t("active"):t("passive")}</button></div>`).join(""):`<div class="muted">${t("nobody")}</div>`;
+  box.querySelectorAll(".tg").forEach(b=>b.onclick=()=>{const p=people[b.dataset.id];write("people",b.dataset.id,{...p,active:p.active===false});});
+  box.querySelectorAll(".pr").forEach(b=>b.onclick=()=>{const p=people[b.dataset.id];$("mPinTitle").textContent=t("pin_reset_title")+" · "+p.name;$("mPinInp").value="";$("mPin").hidden=false;$("mPinGo").onclick=async()=>{const pin=$("mPinInp").value.trim();if(pin.length<4){toast(t("pin_min"));return;}if(await write("people",b.dataset.id,{...p,pin})){$("mPin").hidden=true;toast(t("pin_saved"));}};setTimeout(()=>$("mPinInp").focus(),50);});}
+$("addPerson").onclick=async()=>{const name=$("pName").value.trim();if(!name){toast(t("name_req"));return;}const pin=$("pPin").value.trim();if(pin.length<4){toast(t("pin_min"));$("pPin").focus();return;}if(await write("people","",{name,role:$("pRole").value.trim(),active:true,pin})){$("pName").value="";$("pRole").value="";$("pPin").value="";toast(name+" "+t("added"));}};
+$("savePass").onclick=async()=>{const p=$("newPass").value.trim();if(p.length<4){toast(t("pass_min"));return;}try{await rpc("board_set_pm_password",{p_token:token,p_pass:p});$("newPass").value="";toast(t("pass_changed"));}catch(e){rpcErr(e);}};
+/* ---------- boot ---------- */
+applyLang();
+(function(){const h=location.hash.replace("#","");if(["liste","toplanti","gosterge"].includes(h))showTab(h);})();
+(async()=>{
+  if(!window.supabase||!SB_URL||!SB_KEY){$("roNote").textContent=t("noconn");$("roNote").hidden=false;renderWho();return;}
+  sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false}});db=true;
+  const loadPeople=async()=>{const {data,error}=await sb.from("people").select("id,name,role,active");if(error)throw error;people={};data.forEach(p=>people[p.id]={name:p.name,role:p.role,active:p.active});};
+  const loadItems=async()=>{const {data,error}=await sb.from("items").select("*");if(error)throw error;items={};data.forEach(r=>items[r.id]=rowToItem(r));};
+  const loadSettings=async()=>{const {data}=await sb.from("settings").select("key,value").eq("key","site");settings=(data&&data[0]&&data[0].value)||{};};
+  const loadAll=async()=>{try{await Promise.all([loadPeople(),loadItems(),loadSettings()]);$("roNote").hidden=true;}catch(e){console.error(e);$("roNote").textContent=t("offline");$("roNote").hidden=false;}};
+  await loadAll();
+  // oturumu geri yükle
+  token=lsGet("token");meId=lsGet("me");
+  if(token){try{const me=await rpc("board_me",{p_token:token});if(me&&people[me.person]){meId=me.person;myRole=me.role;isPm=myRole==="pm";}else{token=null;meId=null;lsSet("token",null);}}catch(e){token=null;meId=null;}}
+  if(!token){meId=null;}
+  pickDefaultFilter();renderWho();renderList();if(!$("mWho").hidden)openWho();
+  if(!meId)openWho();
+  const cur=document.querySelector("main section.on")?.id;if(cur==="toplanti")renderMeet();if(cur==="gosterge")renderDash();if(cur==="ayarlar")renderSettings();
+  // canlı güncelleme: değişiklikte ilgili tabloyu yeniden çek; kanal kopuksa 30 sn'de bir yenile
+  let live=false;
+  const refresh=async(tbl)=>{try{if(tbl==="people")await loadPeople();else if(tbl==="settings")await loadSettings();else await loadItems();rerender();if(!$("mWho").hidden&&$("pinBox").hidden)openWho();}catch(e){console.error(e);}};
+  try{sb.channel("board").on("postgres_changes",{event:"*",schema:"public",table:"items"},()=>refresh("items")).on("postgres_changes",{event:"*",schema:"public",table:"people"},()=>refresh("people")).on("postgres_changes",{event:"*",schema:"public",table:"settings"},()=>refresh("settings")).subscribe(st=>{live=st==="SUBSCRIBED";});}catch(e){console.error("realtime",e);}
+  setInterval(()=>{if(!live||document.visibilityState==="visible")loadAll().then(rerender);},live?120000:30000);
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadAll().then(rerender);});
+})();
+</script>
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}</script>
+</body>
+</html>
