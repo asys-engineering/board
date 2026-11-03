@@ -18,6 +18,9 @@ window.supabase={createClient:()=>{
     board_pm_logout:({p_token})=>{sess(p_token).role='site';return null;},
     board_logout:({p_token})=>{delete T.sessions[p_token];return null;},
     board_me:({p_token})=>{const s=T.sessions[p_token];return s?{person:s.person,role:s.role}:null;},
+    board_fetch:({p_token})=>{const s=sess(p_token);return {me:{person:s.person,role:s.role},people:T.people,items:T.items,settings:T.settings[0].value};},
+    board_sessions:({p_token})=>{const s=sess(p_token);if(s.role!=='pm')throw new Error('pm_required');return Object.entries(T.sessions).map(([k,v])=>({person:v.person,role:v.role,at:new Date().toISOString(),exp:''}));},
+    board_revoke_person:({p_token,p_person})=>{const s=sess(p_token);if(s.role!=='pm')throw new Error('pm_required');for(const k in T.sessions)if(T.sessions[k].person===p_person&&k!==p_token)delete T.sessions[k];return null;},
     board_create_item:({p_token,p_title,p_descr})=>{const s=sess(p_token);if(!p_title.trim())throw new Error('title_required');const no=T.items.reduce((m,x)=>Math.max(m,x.no),0)+1;const nm=T.people.find(x=>x.id===s.person)?.name||'';const r={id:'i'+no,no,title:p_title.trim(),descr:p_descr||'',priority:'normal',status:'acik',by_person:s.person,by_name:nm,at:now(),assignee:'',due:'',decision:'',meeting:'',closed_at:'',done_at:'',done_by:'',comments:[],updated_at:now()};T.items.push(r);return r;},
     board_update_item:({p_token,p_id,p_patch})=>{const s=sess(p_token);const cur=T.items.find(x=>x.id===p_id);if(!cur)throw new Error('no_item');const P=p_patch;
       if(s.role==='pm'){const map={title:'title',desc:'descr',priority:'priority',status:'status',assignee:'assignee',due:'due',decision:'decision',meeting:'meeting',closedAt:'closed_at',doneAt:'done_at',doneBy:'done_by'};for(const k in map)if(P[k]!=null)cur[map[k]]=P[k];cur.updated_at=now();return cur;}
@@ -34,7 +37,7 @@ window.supabase={createClient:()=>{
   };
   return {
     rpc:async(n,a)=>{try{if(!rpc[n])throw new Error('no_fn '+n);return ok(JSON.parse(JSON.stringify(rpc[n](a))));}catch(e){return err(e.message);}},
-    from:(tbl)=>{const q={_f:null,select(){return q;},eq(k,v){q._f=[k,v];return q;},then(res){let rows=T[tbl];if(q._f)rows=rows.filter(r=>r[q._f[0]]===q._f[1]);res(ok(JSON.parse(JSON.stringify(rows))));}};return q;},
+    from:(tbl)=>{const q={select(){return q;},eq(){return q;},then(res){res(err('permission denied for table '+tbl));}};return q;},
     channel:()=>{const c={on(){return c;},subscribe(cb){window.__sub=cb;cb('SUBSCRIBED');return c;}};return c;}
   };}};
 `;
@@ -120,12 +123,13 @@ const item = (id, no, title, st, by, ass, due, extra = {}) => ({ id, no, title, 
     const pins = await page.evaluate(() => window.__db.pins); if (!Object.values(pins).includes('reset-77')) throw new Error('password reset failed');
     await page.locator('#people .person', { hasText: 'Yeni Kişi' }).locator('.tg').click(); await page.waitForTimeout(300);
     if (!(await page.locator('#people .person.off').count())) throw new Error('passive failed');
+    await page.waitForTimeout(300); if (!(await page.locator('#sessList .person').count())) throw new Error('sessions list empty');
     await page.fill('#newPass', 'yeni1234'); await page.click('#savePass'); await page.waitForTimeout(300);
     if ((await page.evaluate(() => window.__db.pm)) !== 'yeni1234') throw new Error('pm pass change failed');
     const dlP2 = page.waitForEvent('download', { timeout: 30000 }); await page.click('#allPdf'); await dlP2;
     // PM logout, user logout
     await page.click('#btnPm'); await page.waitForTimeout(200); if (await page.locator('#whoami .role.pm').count()) throw new Error('pm logout failed');
-    await page.click('#btnWho'); await page.waitForTimeout(300); if (!await page.locator('#mWho').isHidden()) throw new Error('logout must not reopen login'); if (!/Giriş/.test(await page.locator('#btnWho').textContent())) throw new Error('button not Giriş after logout'); await page.click('#btnWho'); await page.waitForTimeout(200); if (await page.locator('#mWho').isHidden()) throw new Error('Giriş button did not open login');
+    await page.click('#btnWho'); await page.waitForTimeout(300); if (await page.locator('#mWho').isHidden()) throw new Error('logout should show login'); if ((await page.evaluate(() => Object.keys(window.items||{}).length)) !== 0) throw new Error('data not cleared on logout');
     if (await page.evaluate(() => localStorage.getItem('asys-saha:token'))) throw new Error('token not cleared');
     await page.screenshot({ path: path.join(DIR, 'shot-full.png'), fullPage: true });
   });
@@ -161,6 +165,7 @@ const item = (id, no, title, st, by, ass, due, extra = {}) => ({ id, no, title, 
   await run('expired', { ls: { token: 'dead', me: 'p2' } }, async (page) => {
     if (await page.locator('#mWho').isHidden()) throw new Error('expired token should show login');
     if (!(await page.locator('#whoami .role').count())) throw new Error('no-login badge missing');
+    if ((await page.evaluate(() => Object.keys(window.items||{}).length)) !== 0) throw new Error('data visible without login');
   });
 
   fs.writeFileSync(path.join(DIR, 'errors.txt'), errors.join('\n'));
