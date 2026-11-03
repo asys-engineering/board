@@ -172,6 +172,30 @@ td input,td select{min-height:32px;padding:4px 8px}
 .hbtn.lang{font-weight:800;min-width:38px}
 .ro{display:block;margin-top:6px}
 .doneBtn{padding:4px 9px;font-size:12px}
+.photos{display:flex;gap:8px;flex-wrap:wrap}
+.ph{width:96px;height:96px;border-radius:8px;overflow:hidden;border:1px solid var(--line);background:var(--rowalt);position:relative;cursor:pointer}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph .rm{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.6);color:#fff;border:0;border-radius:50%;width:22px;height:22px;cursor:pointer;font-size:14px;line-height:1}
+.mic.on{background:var(--bad);color:#fff;border-color:var(--bad)}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:60;display:flex;align-items:center;justify-content:center;cursor:zoom-out}
+.lightbox img{max-width:96vw;max-height:92vh;object-fit:contain}
+/* projeksiyon */
+.pjv{position:fixed;inset:0;background:var(--hdr);color:var(--hdr-text);z-index:50;display:flex;flex-direction:column;padding:max(24px,env(safe-area-inset-top,0px)) max(32px,env(safe-area-inset-right,0px)) max(24px,env(safe-area-inset-bottom,0px)) max(32px,env(safe-area-inset-left,0px))}
+.pjv[hidden]{display:none}
+.pjv .top{display:flex;align-items:center;gap:16px;font-size:18px;color:var(--hdr-muted)}
+.pjv .top b{color:var(--amber);font-size:22px}
+.pjv .mid{flex:1;display:flex;flex-direction:column;justify-content:center;gap:18px;min-height:0;overflow:auto}
+.pjv .no{font-size:28px;color:var(--amber)}
+.pjv .ttl{font-size:clamp(28px,4.5vw,56px);font-weight:800;line-height:1.15;letter-spacing:-.5px;text-wrap:balance}
+.pjv .dsc{font-size:clamp(18px,2.2vw,28px);color:var(--hdr-muted);white-space:pre-wrap;max-width:1100px}
+.pjv .meta{display:flex;gap:28px;flex-wrap:wrap;font-size:clamp(18px,2vw,26px)}
+.pjv .meta span b{color:var(--amber)}
+.pjv .meta .miss{font-size:inherit;padding:2px 12px}
+.pjv .bot{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.pjv .bot .btn{font-size:18px;padding:12px 20px}
+.pjv .ctl{display:grid;grid-template-columns:1fr 1fr 2fr;gap:8px;margin-top:10px}
+.pjv .ctl select,.pjv .ctl input{font-size:18px;min-height:46px;background:#2A3136;color:var(--hdr-text);border-color:#4A545B}
+@media (max-width:700px){.pjv .ctl{grid-template-columns:1fr 1fr}.pjv .ctl .wide{grid-column:1/-1}}
 @media (max-width:600px){ .hright{gap:4px} .hright .nm{max-width:64px} .hright .role{display:none} .hbtn{padding:4px 6px;font-size:11px} .hbtn.lang{min-width:32px} .hbar{gap:6px;padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))} .brand .proj{font-size:13px} .logo{height:22px} #dayCopy{width:100%;margin-left:0} }
 .hbar{min-width:0;overflow:hidden}
 @media (max-width:480px){ .brand .proj{display:none} .hright .nm{max-width:96px} }
@@ -232,6 +256,8 @@ td input,td select{min-height:32px;padding:4px 8px}
     <div class="row" style="margin-top:10px">
       <button class="btn ghost" id="protoCopy" data-t="proto_copy">Protokolü kopyala (WhatsApp)</button>
       <button class="btn" id="protoPdf" data-t="proto_pdf">Protokol PDF indir</button>
+      <button class="btn ghost" id="weekMail" data-t="week_mail">Haftalık özet e-postası</button>
+      <button class="btn" id="projBtn" style="margin-left:auto" data-t="proj_mode">▶ Projeksiyon modu</button>
     </div>
     <p class="muted" style="font-size:12px;margin:6px 0 0" data-t="dl_hint">İndirirken tarayıcı onay ister; «İzin ver / Kaydet» deyin. HTML dosyasını açıp Ctrl+P ile PDF yapabilirsiniz.</p>
   </div>
@@ -298,6 +324,13 @@ td input,td select{min-height:32px;padding:4px 8px}
   <p class="muted" id="newWho" style="margin:4px 0 10px"></p>
   <label class="f"><span data-t="subject">Konu</span><input id="nTitle" maxlength="120" data-tp="subject_ph" placeholder="Örn: Blok 2 ВРУ-2 kablo kanalı eksik"></label>
   <label class="f" style="margin-top:10px"><span data-t="descr">Açıklama</span><textarea id="nDesc" rows="5" data-tp="descr_ph" placeholder="Ne eksik / ne soruluyor, nerede"></textarea></label>
+  <div class="row" style="margin-top:10px">
+    <input type="file" id="nPhoto" accept="image/*" capture="environment" multiple hidden>
+    <button class="btn ghost sm" id="nPhotoBtn" type="button">📷 <span data-t="add_photo">Fotoğraf</span></button>
+    <button class="btn ghost sm mic" id="nMic" type="button" hidden>🎤 <span data-t="voice">Sesle yaz</span></button>
+    <span class="muted" id="nPhotoInfo"></span>
+  </div>
+  <div class="photos" id="nPhotos" style="margin-top:8px"></div>
   <div class="row" style="margin-top:14px;justify-content:flex-end">
     <button class="btn ghost" data-close="mNew" data-t="cancel">Vazgeç</button>
     <button class="btn" id="nSave" data-t="save">Kaydet</button>
@@ -346,12 +379,22 @@ td input,td select{min-height:32px;padding:4px 8px}
 <!-- CONFIRM -->
 <div class="modal" id="mAsk" hidden><div class="box"><div id="askMsg" style="white-space:pre-wrap"></div><div class="row" style="justify-content:flex-end;margin-top:14px"><button class="btn ghost" id="askNo" data-t="cancel">Vazgeç</button><button class="btn" id="askYes">Evet</button></div></div></div>
 
+<div class="pjv" id="projView" hidden>
+  <div class="top"><b id="pjCount"></b><span id="pjProject"></span><span style="margin-left:auto" id="pjDate"></span><button class="hbtn" id="pjClose" style="font-size:16px">✕ <span data-t="close">Kapat</span></button></div>
+  <div class="mid" id="pjBody"></div>
+  <div class="bot">
+    <button class="btn ghost" id="pjPrev">‹ <span data-t="prev">Önceki</span></button>
+    <button class="btn ghost" id="pjNext"><span data-t="next">Sonraki</span> ›</button>
+    <span style="flex:1"></span>
+    <span id="pjActs" class="row"></span>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
 /* ---------- i18n ---------- */
 const I18N={
-tr:{user:"Kullanıcı",logout:"Çıkış",proj_title:"Proje",proj_hint:"Üst çubukta, günlük özette ve PDF başlıklarında görünen proje / şantiye adı.",proj_ph:"Örn: Wildberries Almaty",proj_saved:"Proje adı kaydedildi",sessions:"Oturumlar",sessions_hint:"Kimin kaç cihazda açık oturumu var. «Oturumları kapat» kişiyi tüm cihazlardan çıkarır; yeniden şifreyle girer.",sess_n:"oturum",sess_last:"son giriş",sess_revoke:"Oturumları kapat",sess_revoked:"Oturumlar kapatıldı",sess_none:"Açık oturum yok.",logged_out:"Çıkış yapıldı",back:"← Geri",email:"E-posta",password:"Şifre",email_ph:"E-posta",pin_ph:"Şifre",pin_new_ph:"Geçici şifre (min 6)",pin_wrong:"E-posta veya şifre yanlış.",pin_reset:"Şifre sıfırla",pin_reset_title:"Geçici şifre",pin_saved:"Şifre kaydedildi",pin_min:"Şifre en az 6 karakter",email_req:"Geçerli e-posta yazın",pwd_title:"Şifremi değiştir",pwd_old:"Mevcut şifre",pwd_new:"Yeni şifre (min 6)",pwd_bad_old:"Mevcut şifre yanlış",pwd_changed:"Şifreniz değiştirildi",login_req:"Giriş yapın",session_lost:"Oturum sona erdi, tekrar giriş yapın",offline:"Bağlantı yok — veriler güncellenemiyor",tab_list:"Açık Konular",tab_meet:"Toplantı",tab_dash:"Gösterge",tab_set:"Ayarlar",day_copy:"Günlük özet (WhatsApp)",search_ph:"Ara: no, konu, kişi",
+tr:{user:"Kullanıcı",logout:"Çıkış",add_photo:"Fotoğraf",voice:"Sesle yaz",voice_stop:"Durdur",voice_unsupported:"Bu tarayıcıda ses tanıma yok",photo_fail:"Fotoğraf yüklenemedi",photo_big:"Fotoğraf çok büyük",uploading:"Yükleniyor…",photos_n:"fotoğraf",week_mail:"Haftalık özet e-postası",proj_mode:"▶ Projeksiyon modu",prev:"Önceki",next:"Sonraki",pj_empty:"Açık madde yok.",notif_on:"Bildirimler açık",notif_ask:"Bildirimleri aç",n_assigned:"Size yeni iş atandı",n_due:"Termin yaklaşıyor",n_new:"Yeni madde",wk_subject:"Haftalık koordinasyon özeti",wk_open:"Açık maddeler",wk_late:"Termini geçenler",wk_done:"Yapıldı, onay bekliyor",wk_closed:"Bu hafta kapanan",wk_none:"yok",proj_title:"Proje",proj_hint:"Üst çubukta, günlük özette ve PDF başlıklarında görünen proje / şantiye adı.",proj_ph:"Örn: Wildberries Almaty",proj_saved:"Proje adı kaydedildi",sessions:"Oturumlar",sessions_hint:"Kimin kaç cihazda açık oturumu var. «Oturumları kapat» kişiyi tüm cihazlardan çıkarır; yeniden şifreyle girer.",sess_n:"oturum",sess_last:"son giriş",sess_revoke:"Oturumları kapat",sess_revoked:"Oturumlar kapatıldı",sess_none:"Açık oturum yok.",logged_out:"Çıkış yapıldı",back:"← Geri",email:"E-posta",password:"Şifre",email_ph:"E-posta",pin_ph:"Şifre",pin_new_ph:"Geçici şifre (min 6)",pin_wrong:"E-posta veya şifre yanlış.",pin_reset:"Şifre sıfırla",pin_reset_title:"Geçici şifre",pin_saved:"Şifre kaydedildi",pin_min:"Şifre en az 6 karakter",email_req:"Geçerli e-posta yazın",pwd_title:"Şifremi değiştir",pwd_old:"Mevcut şifre",pwd_new:"Yeni şifre (min 6)",pwd_bad_old:"Mevcut şifre yanlış",pwd_changed:"Şifreniz değiştirildi",login_req:"Giriş yapın",session_lost:"Oturum sona erdi, tekrar giriş yapın",offline:"Bağlantı yok — veriler güncellenemiyor",tab_list:"Açık Konular",tab_meet:"Toplantı",tab_dash:"Gösterge",tab_set:"Ayarlar",day_copy:"Günlük özet (WhatsApp)",search_ph:"Ara: no, konu, kişi",
  f_to:"Bana atananlar",f_by:"Benim açtıklarım",f_late:"Termini geçenler",
  meet_title:"Haftalık Koordinasyon Toplantısı",meet_hint:"Açık maddeler öncelik sırasıyla listelenir. Her madde için sorumlu, termin ve karar yazın. Sorumlusu veya termini olmayan maddeler kırmızı işaretlidir. Toplantı sonunda protokolü indirin.",
  proto_copy:"Protokolü kopyala (WhatsApp)",proto_pdf:"Protokol PDF indir",dl_hint:"İndirirken tarayıcı onay ister; «İzin ver / Kaydet» deyin.",pdf_prep:"PDF hazırlanıyor…",pdf_load_fail:"PDF modülü yüklenemedi — internet bağlantısını kontrol edin",pdf_generated:"oluşturuldu",pdf_page:"Sayfa",pdf_pm:"Yönetici",pdf_open_all:"Açık ve bekleyen maddeler",pdf_closed_all:"Kapatılan / iptal edilen maddeler",pdf_all_title:"Saha Takip Raporu",pdf_all_sub:"Tüm maddeler",
@@ -378,7 +421,7 @@ tr:{user:"Kullanıcı",logout:"Çıkış",proj_title:"Proje",proj_hint:"Üst çu
  active:"Aktif yap",passive:"Pasif yap",nobody:"Henüz kimse eklenmedi.",name_req:"Ad Soyad yazın",added:"eklendi",pass_min:"En az 4 karakter",pass_changed:"Şifre değiştirildi",deleted_person:"(silinmiş)",
  proto_h:"Haftalık Koordinasyon Toplantısı",proto_open:"Açık madde",status:"Durum",closed_week:"Bu hafta kapanan",done_week:"Yapıldı, onay bekliyor",proto_title:"Toplantı Protokolü",proto_sign:"Katılımcılar / imza",closed_items:"Bu hafta kapanan maddeler",type:"Tür",zone:"Bölge",subj_desc:"Konu / Açıklama",
  day_h:"Günlük özet",day_open:"Açık",day_crit:"Kritik",day_late:"Termini geçen",day_unass:"Sorumlusuz",day_done:"Yapıldı, onay bekliyor",day_new:"Dün açılan",day_closed:"Bu hafta kapanan",day_late_list:"Termini geçenler"},
-ru:{user:"Пользователь",logout:"Выйти",proj_title:"Проект",proj_hint:"Название проекта / объекта в шапке, сводке дня и заголовках PDF.",proj_ph:"Напр.: Wildberries Almaty",proj_saved:"Название проекта сохранено",sessions:"Сеансы",sessions_hint:"У кого сколько открытых сеансов. «Закрыть сеансы» выходит на всех устройствах; вход снова по паролю.",sess_n:"сеанс.",sess_last:"последний вход",sess_revoke:"Закрыть сеансы",sess_revoked:"Сеансы закрыты",sess_none:"Открытых сеансов нет.",logged_out:"Вы вышли",back:"← Назад",email:"E-mail",password:"Пароль",email_ph:"E-mail",pin_ph:"Пароль",pin_new_ph:"Временный пароль (мин. 6)",pin_wrong:"Неверный e-mail или пароль.",pin_reset:"Сбросить пароль",pin_reset_title:"Временный пароль",pin_saved:"Пароль сохранён",pin_min:"Пароль минимум 6 символов",email_req:"Введите корректный e-mail",pwd_title:"Сменить пароль",pwd_old:"Текущий пароль",pwd_new:"Новый пароль (мин. 6)",pwd_bad_old:"Текущий пароль неверен",pwd_changed:"Пароль изменён",login_req:"Войдите",session_lost:"Сеанс истёк, войдите снова",offline:"Нет связи — данные не обновляются",tab_list:"Открытые вопросы",tab_meet:"Совещание",tab_dash:"Сводка",tab_set:"Настройки",day_copy:"Сводка дня (WhatsApp)",search_ph:"Поиск: №, тема, человек",
+ru:{user:"Пользователь",logout:"Выйти",add_photo:"Фото",voice:"Голосом",voice_stop:"Стоп",voice_unsupported:"В этом браузере нет распознавания речи",photo_fail:"Не удалось загрузить фото",photo_big:"Фото слишком большое",uploading:"Загрузка…",photos_n:"фото",week_mail:"Еженедельная сводка на e-mail",proj_mode:"▶ Режим проектора",prev:"Назад",next:"Далее",pj_empty:"Открытых пунктов нет.",notif_on:"Уведомления включены",notif_ask:"Включить уведомления",n_assigned:"Вам назначен пункт",n_due:"Приближается срок",n_new:"Новый пункт",wk_subject:"Еженедельная сводка координации",wk_open:"Открытые пункты",wk_late:"Просроченные",wk_done:"Сделано, ждёт подтверждения",wk_closed:"Закрыто за неделю",wk_none:"нет",proj_title:"Проект",proj_hint:"Название проекта / объекта в шапке, сводке дня и заголовках PDF.",proj_ph:"Напр.: Wildberries Almaty",proj_saved:"Название проекта сохранено",sessions:"Сеансы",sessions_hint:"У кого сколько открытых сеансов. «Закрыть сеансы» выходит на всех устройствах; вход снова по паролю.",sess_n:"сеанс.",sess_last:"последний вход",sess_revoke:"Закрыть сеансы",sess_revoked:"Сеансы закрыты",sess_none:"Открытых сеансов нет.",logged_out:"Вы вышли",back:"← Назад",email:"E-mail",password:"Пароль",email_ph:"E-mail",pin_ph:"Пароль",pin_new_ph:"Временный пароль (мин. 6)",pin_wrong:"Неверный e-mail или пароль.",pin_reset:"Сбросить пароль",pin_reset_title:"Временный пароль",pin_saved:"Пароль сохранён",pin_min:"Пароль минимум 6 символов",email_req:"Введите корректный e-mail",pwd_title:"Сменить пароль",pwd_old:"Текущий пароль",pwd_new:"Новый пароль (мин. 6)",pwd_bad_old:"Текущий пароль неверен",pwd_changed:"Пароль изменён",login_req:"Войдите",session_lost:"Сеанс истёк, войдите снова",offline:"Нет связи — данные не обновляются",tab_list:"Открытые вопросы",tab_meet:"Совещание",tab_dash:"Сводка",tab_set:"Настройки",day_copy:"Сводка дня (WhatsApp)",search_ph:"Поиск: №, тема, человек",
  f_to:"Назначено мне",f_by:"Мои записи",f_late:"Просроченные",
  meet_title:"Еженедельное координационное совещание",meet_hint:"Открытые пункты идут по приоритету. По каждому укажите ответственного, срок и решение. Пункты без ответственного или срока помечены красным. В конце скачайте протокол.",
  proto_copy:"Скопировать протокол (WhatsApp)",proto_pdf:"Скачать протокол PDF",dl_hint:"При скачивании браузер запросит подтверждение — нажмите «Разрешить / Сохранить».",pdf_prep:"Готовим PDF…",pdf_load_fail:"Модуль PDF не загрузился — проверьте интернет",pdf_generated:"сформирован",pdf_page:"Стр.",pdf_pm:"Руководитель проекта",pdf_open_all:"Открытые и ожидающие пункты",pdf_closed_all:"Закрытые / отменённые пункты",pdf_all_title:"Отчёт по объекту",pdf_all_sub:"Все пункты",
@@ -445,7 +488,7 @@ const canDone=it=>ACTIVE.includes(it.status)&&(isPm||(meId&&(it.assignee===meId|
 document.querySelectorAll("[data-close]").forEach(b=>b.onclick=()=>$(b.dataset.close).hidden=true);
 async function copyText(s){try{await navigator.clipboard.writeText(s);toast(t("copied"));}catch(e){const ta=document.createElement("textarea");ta.value=s;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");toast(t("copied"));}catch(_){toast(t("copy_fail"));}ta.remove();}}
 /* ---------- lang ---------- */
-lang=lsGet("lang")||"tr";if(!I18N[lang])lang="tr";
+lang=lsGet("lang")||(/^ru/i.test(navigator.language||"")?"ru":"tr");if(!I18N[lang])lang="tr";
 $("btnLang").onclick=()=>{lang=lang==="tr"?"ru":"tr";lsSet("lang",lang);applyLang();};
 /* ---------- tabs ---------- */
 function showTab(id){document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x.dataset.tab===id));document.querySelectorAll("main section").forEach(s=>s.classList.toggle("on",s.id===id));$("fab").hidden=id!=="liste";if(id==="toplanti")renderMeet();if(id==="gosterge")renderDash();if(id==="ayarlar")renderSettings();try{if(location.hash!=="#"+id)history.replaceState(null,"","#"+id);}catch(e){}}
@@ -456,7 +499,7 @@ function renderWho(){const e=$("whoami");const n=myName();e.innerHTML=n?`<span c
 function openWho(){$("pinErr").hidden=true;$("pinInp").value="";const em=lsGet("email");if(em&&!$("emailInp").value)$("emailInp").value=em;$("whoNote").textContent=t("who_ro");$("mWho").hidden=false;setTimeout(()=>($("emailInp").value?$("pinInp"):$("emailInp")).focus(),50);}
 $("pinInp").addEventListener("keydown",e=>{if(e.key==="Enter")$("pinGo").click();});
 $("emailInp").addEventListener("keydown",e=>{if(e.key==="Enter")$("pinInp").focus();});
-$("pinGo").onclick=async()=>{const email=$("emailInp").value.trim().toLowerCase();const pin=$("pinInp").value;if(!email||!pin)return;$("pinGo").disabled=true;try{const {data,error}=await sb.rpc("board_login",{p_email:email,p_password:pin});if(!error)lsSet("email",email);if(error)throw error;token=data.token;meId=data.person;myRole=data.role;isPm=myRole==="pm";lsSet("token",token);lsSet("me",meId);lsSet("loggedOut",null);$("mWho").hidden=true;await window.loadAll();autoMine=false;pickDefaultFilter();renderWho();rerender();}catch(e){console.error(e);$("pinErr").hidden=false;$("pinInp").value="";$("pinInp").focus();}$("pinGo").disabled=false;};
+$("pinGo").onclick=async()=>{const email=$("emailInp").value.trim().toLowerCase();const pin=$("pinInp").value;if(!email||!pin)return;$("pinGo").disabled=true;try{const {data,error}=await sb.rpc("board_login",{p_email:email,p_password:pin});if(!error)lsSet("email",email);if(error)throw error;token=data.token;meId=data.person;myRole=data.role;isPm=myRole==="pm";lsSet("token",token);lsSet("me",meId);lsSet("loggedOut",null);$("mWho").hidden=true;await window.loadAll();autoMine=false;pickDefaultFilter();renderWho();rerender();if(window.checkNotifs)window.checkNotifs();}catch(e){console.error(e);$("pinErr").hidden=false;$("pinInp").value="";$("pinInp").focus();}$("pinGo").disabled=false;};
 $("whoami").style.cursor="pointer";$("whoami").title="";$("whoami").onclick=()=>{if(!meId)return;$("pwdOld").value="";$("pwdNew").value="";$("pwdErr").hidden=true;$("mPwd").hidden=false;setTimeout(()=>$("pwdOld").focus(),50);};
 $("pwdGo").onclick=async()=>{const o=$("pwdOld").value,n=$("pwdNew").value;if(n.length<6){$("pwdErr").textContent=t("pin_min");$("pwdErr").hidden=false;return;}try{await rpc("board_change_password",{p_token:token,p_old:o,p_new:n});$("mPwd").hidden=true;toast(t("pwd_changed"));}catch(e){$("pwdErr").textContent=/bad_old/.test(e.message||"")?t("pwd_bad_old"):t("save_fail");$("pwdErr").hidden=false;}};
 $("btnWho").onclick=async()=>{if(!meId){openWho();return;}try{await sb.rpc("board_logout",{p_token:token});}catch(e){}token=null;meId=null;isPm=false;myRole="site";lsSet("token",null);lsSet("me",null);filt.mine=null;$("mineChips").querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));people={};items={};settings={};renderWho();rerender();toast(t("logged_out"));openWho();};
@@ -482,7 +525,7 @@ function renderList(){stChips();const v=visible();$("listMeta").textContent=v.le
   if(!meId){box.innerHTML=`<div class="empty">${t("login_req")}</div>`;return;}if(!Object.keys(items).length){box.innerHTML=`<div class="empty">${t("empty_items")}</div>`;return;}
   if(!v.length){box.innerHTML=`<div class="empty">${t("empty_filter")}</div>`;return;}
   box.innerHTML=v.map(([id,it])=>`<div class="it ${esc(it.priority)} ${it.status==="yapildi"||it.status==="kapali"||it.status==="iptal"?"done":""}" data-id="${id}"><div class="stripe"></div><div class="body"><div class="t"><span class="no">#${it.no}</span> ${esc(it.title)}</div>
-    <div class="m">${it.priority&&it.priority!=="normal"?`<span class="tag">${PR(it.priority)}</span>`:""}<span>${esc(opener(it))} · ${fmtD(it.at)}</span>${(it.comments||[]).length?`<span>💬 ${it.comments.length}</span>`:""}</div></div>
+    <div class="m">${it.priority&&it.priority!=="normal"?`<span class="tag">${PR(it.priority)}</span>`:""}<span>${esc(opener(it))} · ${fmtD(it.at)}</span>${(it.photos||[]).length?`<span>📷 ${it.photos.length}</span>`:""}${(it.comments||[]).length?`<span>💬 ${it.comments.length}</span>`:""}</div></div>
     <div class="side"><span class="st ${esc(it.status)}">${ST(it.status)}</span>${it.assignee?`<span>→ ${esc(personName(it.assignee))}</span>`:""}${it.due?`<span class="${isLate(it)?"late":""}">⏱ ${fmtD(it.due)}</span>`:""}${canDone(it)&&it.status!=="yapildi"?`<button class="btn sm good doneBtn" data-id="${id}">${t("done_btn")}</button>`:""}</div></div>`).join("");
   box.querySelectorAll(".it").forEach(e=>e.onclick=ev=>{if(ev.target.closest(".doneBtn"))return;openDetail(e.dataset.id);});
   box.querySelectorAll(".doneBtn").forEach(b=>b.onclick=ev=>{ev.stopPropagation();markDone(b.dataset.id);});}
@@ -497,12 +540,30 @@ function dayText(){const all=Object.values(items);const open=all.filter(i=>OPEN.
   return s;}
 $("dayCopy").onclick=()=>copyText(dayText());
 /* ---------- new item ---------- */
-$("fab").onclick=()=>{if(!meId){openWho();toast(t("pick_first"));return;}editingId=null;$("newTitle").textContent=t("new_title");$("nTitle").value="";$("nDesc").value="";$("newWho").textContent=t("opened_by")+": "+myName()+" · "+fmtD(today());$("mNew").hidden=false;setTimeout(()=>$("nTitle").focus(),50);};
+let newPhotos=[];
+function shrink(file){return new Promise((res,rej)=>{const img=new Image();const u=URL.createObjectURL(file);img.onload=()=>{const M=1400;let w=img.width,h=img.height;if(w>M||h>M){const r=Math.min(M/w,M/h);w=Math.round(w*r);h=Math.round(h*r);}const c=document.createElement("canvas");c.width=w;c.height=h;c.getContext("2d").drawImage(img,0,0,w,h);URL.revokeObjectURL(u);c.toBlob(b=>b?res(b):rej(new Error("blob")),"image/jpeg",.8);};img.onerror=()=>{URL.revokeObjectURL(u);rej(new Error("img"));};img.src=u;});}
+const blobToB64=b=>new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(b);});
+const photoCache={};
+async function photoSrc(id){if(photoCache[id])return photoCache[id];try{const b=await rpc("board_photo",{p_token:token,p_id:id});photoCache[id]="data:image/jpeg;base64,"+b;return photoCache[id];}catch(e){return "";}}
+async function uploadPhotos(itemId,blobs){let okN=0;for(const b of blobs){try{const b64=await blobToB64(b);if(b64.length>2000000){toast(t("photo_big"));continue;}await rpc("board_add_photo",{p_token:token,p_item:itemId,p_b64:b64});okN++;}catch(e){console.error(e);toast(t("photo_fail"));}}return okN;}
+function renderNewPhotos(){$("nPhotos").innerHTML=newPhotos.map((b,i)=>`<div class="ph"><img src="${URL.createObjectURL(b)}" alt=""><button class="rm" data-i="${i}" type="button">×</button></div>`).join("");$("nPhotos").querySelectorAll(".rm").forEach(x=>x.onclick=()=>{newPhotos.splice(+x.dataset.i,1);renderNewPhotos();});}
+$("nPhotoBtn").onclick=()=>$("nPhoto").click();
+$("nPhoto").onchange=async()=>{const files=[...$("nPhoto").files];$("nPhoto").value="";$("nPhotoInfo").textContent=t("uploading");for(const f of files){try{newPhotos.push(await shrink(f));}catch(e){toast(t("photo_fail"));}}$("nPhotoInfo").textContent="";renderNewPhotos();};
+function lightbox(src){const d=document.createElement("div");d.className="lightbox";d.innerHTML=`<img src="${src}" alt="">`;d.onclick=()=>d.remove();document.body.appendChild(d);}
+/* sesle yaz */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;let rec=null,recOn=false;
+if(SR){$("nMic").hidden=false;}
+$("nMic").onclick=()=>{if(!SR){toast(t("voice_unsupported"));return;}if(recOn){rec.stop();return;}rec=new SR();rec.lang=lang==="ru"?"ru-RU":"tr-TR";rec.interimResults=false;rec.continuous=true;const ta=$("nDesc");
+  rec.onresult=e=>{let txt="";for(let i=e.resultIndex;i<e.results.length;i++)if(e.results[i].isFinal)txt+=e.results[i][0].transcript;if(txt){ta.value=(ta.value?ta.value.trimEnd()+" ":"")+txt.trim();}};
+  rec.onend=()=>{recOn=false;$("nMic").classList.remove("on");$("nMic").querySelector("span").textContent=t("voice");};rec.onerror=()=>{recOn=false;$("nMic").classList.remove("on");};
+  try{rec.start();recOn=true;$("nMic").classList.add("on");$("nMic").querySelector("span").textContent=t("voice_stop");}catch(e){toast(t("voice_unsupported"));}};
+$("fab").onclick=()=>{if(!meId){openWho();toast(t("pick_first"));return;}editingId=null;newPhotos=[];renderNewPhotos();$("nPhotoInfo").textContent="";$("newTitle").textContent=t("new_title");$("nTitle").value="";$("nDesc").value="";$("newWho").textContent=t("opened_by")+": "+myName()+" · "+fmtD(today());$("mNew").hidden=false;setTimeout(()=>$("nTitle").focus(),50);};
 $("nSave").onclick=async()=>{const title=$("nTitle").value.trim();if(!title){toast(t("title_req"));$("nTitle").focus();return;}
   if(editingId){const it=items[editingId];const d={...it,title,desc:$("nDesc").value.trim(),updatedAt:now()};if(await write("items",editingId,d)){$("mNew").hidden=true;toast(t("updated"));}return;}
   if(!token){toast(t("login_req"));openWho();return;}
-  try{const r=await rpc("board_create_item",{p_token:token,p_title:title,p_descr:$("nDesc").value.trim()});items[r.id]=rowToItem(r);rerender();$("mNew").hidden=true;toast("#"+r.no+" · "+t("saved"));}catch(e){rpcErr(e);}};
-function rowToItem(r){return {no:r.no,title:r.title,desc:r.descr||"",type:"",zone:"",priority:r.priority,status:r.status,by:r.by_person||"",byName:r.by_name||"",at:r.at,assignee:r.assignee||"",due:r.due||"",decision:r.decision||"",meeting:r.meeting||"",closedAt:r.closed_at||"",doneAt:r.done_at||"",doneBy:r.done_by||"",photos:[],comments:r.comments||[],updatedAt:r.updated_at};}
+  if(recOn&&rec)rec.stop();
+  try{const r=await rpc("board_create_item",{p_token:token,p_title:title,p_descr:$("nDesc").value.trim()});items[r.id]=rowToItem(r);rerender();$("mNew").hidden=true;toast("#"+r.no+" · "+t("saved"));if(newPhotos.length){$("nPhotoInfo").textContent="";const n=await uploadPhotos(r.id,newPhotos);newPhotos=[];await window.loadAll();rerender();}}catch(e){rpcErr(e);}};
+function rowToItem(r){return {no:r.no,title:r.title,desc:r.descr||"",type:"",zone:"",priority:r.priority,status:r.status,by:r.by_person||"",byName:r.by_name||"",at:r.at,assignee:r.assignee||"",due:r.due||"",decision:r.decision||"",meeting:r.meeting||"",closedAt:r.closed_at||"",doneAt:r.done_at||"",doneBy:r.done_by||"",photos:r.photos||[],comments:r.comments||[],updatedAt:r.updated_at};}
 function rpcErr(e){const m=(e&&e.message)||"";if(/not_logged_in/.test(m)){token=null;meId=null;isPm=false;lsSet("token",null);renderWho();toast(t("session_lost"));openWho();return;}if(/pm_required|not_allowed/.test(m)){toast(t("no_write"));return;}console.error(e);toast(t("save_fail")+(m?" ("+m.slice(0,40)+")":""));}
 async function rpc(name,args){const {data,error}=await sb.rpc(name,args);if(error)throw error;return data;}
 async function write(col,id,data){if(!sb||!token){toast(t("login_req"));openWho();return false;}
@@ -522,6 +583,8 @@ function renderDetail(){const it=items[detId];if(!it){$("mDet").hidden=true;retu
   <div class="kv"><span class="k">${t("opened_by")}</span><span>${esc(opener(it))} · ${fmtD(it.at)}</span><span class="k">${t("assignee")}</span><span>${esc(personName(it.assignee))}</span><span class="k">${t("due")}</span><span class="${isLate(it)?"late":""}">${fmtD(it.due)||"—"}</span>${it.meeting?`<span class="k">${t("meeting")}</span><span>${fmtD(it.meeting)}</span>`:""}${it.doneAt?`<span class="k">${ST("yapildi")}</span><span>${esc(personName(it.doneBy))} · ${fmtD(it.doneAt)}</span>`:""}${it.closedAt?`<span class="k">${t("closed")}</span><span>${fmtD(it.closedAt)}</span>`:""}</div>
   ${it.desc?`<div class="desc">${esc(it.desc)}</div>`:""}
   ${it.decision?`<div class="pmbox"><span class="lb">${t("decision").toUpperCase()}</span><div class="desc" style="margin:0">${esc(it.decision)}</div></div>`:""}
+  <div class="row" style="margin-top:12px"><h3 style="margin:0">${t("add_photo")} <span class="muted" style="font-weight:600">${(it.photos||[]).length}</span></h3>${ACTIVE.includes(it.status)?`<input type="file" id="dPhoto" accept="image/*" capture="environment" multiple hidden><button class="btn ghost sm" id="dPhotoBtn">📷 +</button><span class="muted" id="dPhotoInfo"></span>`:""}</div>
+  <div class="photos" id="dPhotos" style="margin-top:6px">${(it.photos||[]).map(pid=>`<div class="ph" data-pid="${pid}"><img alt=""><button class="rm" data-pid="${pid}" title="${t("del")}">×</button></div>`).join("")}</div>
   <h3 style="margin-top:14px">${t("comments")}</h3>
   <div id="cmList">${(it.comments||[]).map(c=>`<div class="cm"><div class="who">${esc(c.byName)} · ${fmtD(c.at)} ${new Date(c.at).toTimeString().slice(0,5)}</div><div class="tx">${esc(c.text)}</div></div>`).join("")||`<div class="muted">${t("no_comments")}</div>`}</div>
   <div class="row" style="margin-top:8px"><input id="cmText" placeholder="${t("comment_ph")}" style="flex:1;min-width:160px"><button class="btn sm" id="cmAdd">${t("send")}</button></div>
@@ -530,11 +593,14 @@ function renderDetail(){const it=items[detId];if(!it){$("mDet").hidden=true;retu
     <div class="row" style="margin-top:8px"><button class="btn sm ghost" id="dSave">${t("save")}</button>${ACTIVE.includes(it.status)?`<button class="btn sm good" id="dKap">${t("close")}</button><button class="btn sm ghost" id="dIpt">${t("cancel_item")}</button>`:`<button class="btn sm ghost" id="dAc">${t("reopen")}</button>`}<button class="btn sm danger" id="dDel" style="margin-left:auto">${t("del")}</button></div></div>`:""}
   <div class="row" style="margin-top:12px;justify-content:flex-end">${canDone(it)&&it.status!=="yapildi"?`<button class="btn good sm" id="dDone">${t("done_btn")}</button>`:""}${it.status==="yapildi"&&canDone(it)?`<button class="btn ghost sm" id="dUndo">${t("undo")}</button>`:""}${canEditOwn?`<button class="btn ghost sm" id="dEdit">${t("edit")}</button>`:""}<button class="btn ghost sm" id="detClose">${t("close")}</button></div>`;
   $("detX").onclick=$("detClose").onclick=()=>$("mDet").hidden=true;
+  b.querySelectorAll("#dPhotos .ph").forEach(async el=>{const src=await photoSrc(el.dataset.pid);const img=el.querySelector("img");if(src){img.src=src;img.onclick=()=>lightbox(src);}else el.style.opacity=.4;});
+  b.querySelectorAll("#dPhotos .rm").forEach(x=>x.onclick=async ev=>{ev.stopPropagation();if(!await ask(t("ask_del"),t("del")))return;try{await rpc("board_delete_photo",{p_token:token,p_id:x.dataset.pid});delete photoCache[x.dataset.pid];await window.loadAll();rerender();}catch(e){rpcErr(e);}});
+  if($("dPhotoBtn")){$("dPhotoBtn").onclick=()=>$("dPhoto").click();$("dPhoto").onchange=async()=>{const files=[...$("dPhoto").files];$("dPhoto").value="";$("dPhotoInfo").textContent=t("uploading");const blobs=[];for(const f of files){try{blobs.push(await shrink(f));}catch(e){}}await uploadPhotos(detId,blobs);await window.loadAll();rerender();};}
   $("cmAdd").onclick=async()=>{const x=$("cmText").value.trim();if(!x)return;if(!meId){openWho();return;}try{const r=await rpc("board_add_comment",{p_token:token,p_id:detId,p_text:x});items[detId]=rowToItem(r);$("cmText").value="";rerender();}catch(e){rpcErr(e);}};
   $("cmText").addEventListener("keydown",e=>{if(e.key==="Enter")$("cmAdd").click();});
   if($("dDone"))$("dDone").onclick=()=>markDone(detId);
   if($("dUndo"))$("dUndo").onclick=async()=>{const d={...it,status:it.assignee?"gorusuldu":"acik",doneAt:"",doneBy:"",updatedAt:now()};await write("items",detId,d);};
-  if($("dEdit"))$("dEdit").onclick=()=>{editingId=detId;$("newTitle").textContent="#"+it.no+" "+t("edit_title");$("nTitle").value=it.title;$("nDesc").value=it.desc||"";$("newWho").textContent="";$("mDet").hidden=true;$("mNew").hidden=false;};
+  if($("dEdit"))$("dEdit").onclick=()=>{editingId=detId;$("newTitle").textContent="#"+it.no+" "+t("edit_title");$("nTitle").value=it.title;$("nDesc").value=it.desc||"";$("newWho").textContent="";newPhotos=[];renderNewPhotos();$("mDet").hidden=true;$("mNew").hidden=false;};
   if(isPm){const pmData=()=>({...it,assignee:$("dAss").value,due:$("dDue").value,priority:$("dPrio").value,decision:$("dDec").value.trim(),updatedAt:now()});
     $("dSave").onclick=async()=>{const d=pmData();if(d.assignee&&d.status==="acik")d.status="gorusuldu";if(await write("items",detId,d))toast(t("saved"));};
     if($("dKap"))$("dKap").onclick=async()=>{const d=pmData();d.status="kapali";d.closedAt=now();if(await write("items",detId,d))toast("#"+it.no+" "+t("closed_toast"));};
@@ -572,6 +638,31 @@ function groupHtml(L,pm){let out="",cur=null;L.forEach(([id,it])=>{if(it.priorit
    ${pm?`<div class="ctl"><select class="mAss">${assOptions(it.assignee)}</select><input type="date" class="mDue" value="${esc(it.due||"")}"><select class="mPrio">${prioOptions(it.priority)}</select><input class="mDec wide" placeholder="${t("decision_ph")}" value="${esc(it.decision||"")}"></div>
    <div class="acts"><button class="btn sm ghost aSave">${t("save")}</button><button class="btn sm aCoz">${t("in_progress")}</button><button class="btn sm good aKap">${t("close")}</button><button class="btn sm ghost aDet" style="margin-left:auto">${t("detail")}</button></div>`:(it.decision?`<div class="pmbox"><span class="lb">${t("decision").toUpperCase()}</span>${esc(it.decision)}</div>`:"")}
   </div></div>`;});return out;}
+/* projeksiyon modu */
+let pjIdx=0;
+function pjList(){return meetList();}
+function openProj(){pjIdx=0;$("projView").hidden=false;renderProj();document.addEventListener("keydown",pjKeys);try{document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen().catch(()=>{});}catch(e){}}
+function closeProj(){$("projView").hidden=true;document.removeEventListener("keydown",pjKeys);try{document.fullscreenElement&&document.exitFullscreen();}catch(e){}}
+function pjKeys(e){if(e.key==="Escape")closeProj();else if(e.key==="ArrowRight"||e.key===" "||e.key==="PageDown"){e.preventDefault();pjMove(1);}else if(e.key==="ArrowLeft"||e.key==="PageUp"){e.preventDefault();pjMove(-1);}}
+function pjMove(d){const L=pjList();if(!L.length)return;pjIdx=(pjIdx+d+L.length)%L.length;renderProj();}
+function renderProj(){const L=pjList();$("pjProject").textContent="Board @ ASYS · "+projectName();$("pjDate").textContent=fmtD($("meetDate").value||today());const body=$("pjBody"),acts=$("pjActs");
+  if(!L.length){$("pjCount").textContent="0 / 0";body.innerHTML=`<div class="ttl">${t("pj_empty")}</div>`;acts.innerHTML="";return;}
+  if(pjIdx>=L.length)pjIdx=L.length-1;const [id,it]=L[pjIdx];$("pjCount").textContent=(pjIdx+1)+" / "+L.length;
+  body.innerHTML=`<div class="no">#${it.no} · <span class="st ${esc(it.status)}">${ST(it.status)}</span> · ${PR(it.priority)}</div><div class="ttl">${esc(it.title)}</div>${it.desc?`<div class="dsc">${esc(it.desc)}</div>`:""}
+   <div class="meta"><span>${t("opened_by")}: <b>${esc(opener(it))}</b> · ${fmtD(it.at)}</span><span>${t("assignee")}: ${it.assignee?`<b>${esc(personName(it.assignee))}</b>`:`<span class="miss">${t("no_assignee")}</span>`}</span><span>${t("due")}: ${it.due?`<b class="${isLate(it)?"late":""}">${fmtD(it.due)}</b>`:`<span class="miss">${t("no_due")}</span>`}</span>${it.decision?`<span>${t("decision")}: <b>${esc(it.decision)}</b></span>`:""}</div>
+   ${isPm?`<div class="ctl"><select id="pjAss">${assOptions(it.assignee)}</select><input type="date" id="pjDue" value="${esc(it.due||"")}"><input id="pjDec" class="wide" placeholder="${t("decision_ph")}" value="${esc(it.decision||"")}"></div>`:""}`;
+  acts.innerHTML=isPm?`<button class="btn ghost" id="pjSave">${t("save")}</button><button class="btn" id="pjCoz">${t("in_progress")}</button><button class="btn good" id="pjKap">${t("close")}</button>`:"";
+  if(isPm){const get=()=>({...it,assignee:$("pjAss").value,due:$("pjDue").value,decision:$("pjDec").value.trim(),meeting:$("meetDate").value,updatedAt:now()});
+    $("pjSave").onclick=async()=>{const d=get();if(d.assignee&&d.status==="acik")d.status="gorusuldu";if(await write("items",id,d)){toast("#"+it.no+" · "+t("saved"));renderProj();}};
+    $("pjCoz").onclick=async()=>{const d=get();d.status="cozumde";if(await write("items",id,d))renderProj();};
+    $("pjKap").onclick=async()=>{const d=get();d.status="kapali";d.closedAt=now();if(await write("items",id,d)){toast("#"+it.no+" "+t("closed_toast"));renderProj();}};}}
+$("projBtn").onclick=openProj;$("pjClose").onclick=closeProj;$("pjPrev").onclick=()=>pjMove(-1);$("pjNext").onclick=()=>pjMove(1);
+/* haftalık özet e-postası (Outlook'ta hazır açılır) */
+function weekText(){const all=Object.values(items);const open=all.filter(i=>OPEN.includes(i.status)).sort(byPrioV);const late=open.filter(isLate);const done=all.filter(i=>i.status==="yapildi");const wk=weekAgo(today());const closed=all.filter(i=>i.status==="kapali"&&(i.closedAt||"").slice(0,10)>=wk);
+  const line=i=>`#${i.no} ${i.title} — ${i.assignee?personName(i.assignee):t("no_assignee")}${i.due?" · "+fmtD(i.due):""}`;
+  return `${t("wk_subject")} · ${projectName()} · ${fmtD(today())}\n\n${t("wk_open")} (${open.length}):\n${open.map(line).join("\n")||t("wk_none")}\n\n${t("wk_late")} (${late.length}):\n${late.map(line).join("\n")||t("wk_none")}\n\n${t("wk_done")} (${done.length}):\n${done.map(line).join("\n")||t("wk_none")}\n\n${t("wk_closed")} (${closed.length}):\n${closed.map(i=>"#"+i.no+" "+i.title).join("\n")||t("wk_none")}\n\n${location.origin+location.pathname}`;}
+const byPrioV=(a,b)=>{const p=(PRANK[a.priority]??2)-(PRANK[b.priority]??2);return p||(a.no-b.no);};
+$("weekMail").onclick=()=>{const to=Object.values(people).filter(p=>p.active!==false&&p.email).map(p=>p.email).join(",");const subj=t("wk_subject")+" · "+projectName()+" · "+fmtD(today());const body=weekText();copyText(body);window.location.href="mailto:"+encodeURIComponent(to)+"?subject="+encodeURIComponent(subj)+"&body="+encodeURIComponent(body);};
 /* protocol */
 function weekAgo(d){const x=new Date(d);x.setDate(x.getDate()-7);return x.toISOString().slice(0,10);}
 function protoText(){const d=$("meetDate").value;const L=meetList(),D=doneList();let s=`ASYS Engineering · ${projectName()}\n${t("proto_h")} · ${fmtD(d)}\n${t("proto_open")}: ${L.length}\n`;let cur=null;L.forEach(([,it])=>{if(it.priority!==cur){cur=it.priority;s+=`\n■ ${PR(cur)} ${t("prio_word")}\n`;}s+=`#${it.no} ${it.title}\n   ${t("status")}: ${ST(it.status)}${it.assignee?" · "+t("assignee")+": "+personName(it.assignee):" · "+t("no_assignee").toUpperCase()}${it.due?" · "+t("due")+": "+fmtD(it.due):""}${it.decision?"\n   "+t("decision")+": "+it.decision:""}\n`;});
@@ -656,7 +747,19 @@ applyLang();
   renderProject();pickDefaultFilter();renderWho();renderList();if(!meId)openWho();
   const cur=document.querySelector("main section.on")?.id;if(cur==="toplanti")renderMeet();if(cur==="gosterge")renderDash();if(cur==="ayarlar")renderSettings();
   // yenileme: 15 sn'de bir (sekme görünürken) + sekmeye dönünce
-  setInterval(()=>{if(token&&document.visibilityState==="visible")loadAll().then(r=>{if(r)rerender();});},15000);
+  // bildirimler: atama / yaklaşan termin / (yönetici) yeni madde
+  const notify=(title,body,tag)=>{try{if(!("Notification" in window)||Notification.permission!=="granted")return;if(navigator.serviceWorker&&navigator.serviceWorker.ready){navigator.serviceWorker.ready.then(r=>r.showNotification(title,{body,tag,icon:"icon-192.png",badge:"icon-192.png"})).catch(()=>new Notification(title,{body,tag}));}else new Notification(title,{body,tag});}catch(e){}};
+  const notifSeen=()=>{try{return JSON.parse(lsGet("notif")||"{}");}catch(e){return {};}};
+  const checkNotifs=()=>{if(!meId)return;const seen=notifSeen();const d=today();const tom=new Date();tom.setDate(tom.getDate()+1);const ti=tom.toISOString().slice(0,10);let changed=false;
+    Object.entries(items).forEach(([id,it])=>{if(!ACTIVE.includes(it.status))return;
+      if(it.assignee===meId&&it.by!==meId&&seen["a:"+id]!==it.assignee){if(seen.init)notify(t("n_assigned"),"#"+it.no+" "+it.title,"a"+id);seen["a:"+id]=it.assignee;changed=true;}
+      if(it.assignee===meId&&it.due&&(it.due===d||it.due===ti)&&seen["d:"+id]!==d){if(seen.init)notify(t("n_due"),"#"+it.no+" "+it.title+" · "+fmtD(it.due),"d"+id);seen["d:"+id]=d;changed=true;}
+      if(isPm&&it.by!==meId&&!seen["n:"+id]){if(seen.init)notify(t("n_new"),"#"+it.no+" "+it.title+" — "+opener(it),"n"+id);seen["n:"+id]=1;changed=true;}});
+    if(!seen.init){seen.init=1;changed=true;}if(changed)lsSet("notif",JSON.stringify(seen));};
+  window.checkNotifs=checkNotifs;
+  if("Notification" in window&&Notification.permission==="default"&&meId){const b=document.createElement("button");b.className="btn sm ghost";b.id="notifBtn";b.textContent=t("notif_ask");b.style.margin="6px 0 0";b.onclick=()=>Notification.requestPermission().then(p=>{if(p==="granted"){toast(t("notif_on"));b.remove();}});$("liste").querySelector(".card").appendChild(b);}
+  checkNotifs();
+  setInterval(()=>{if(token)loadAll().then(r=>{if(r){checkNotifs();if(document.visibilityState==="visible")rerender();}});},15000);
   document.addEventListener("visibilitychange",()=>{if(token&&document.visibilityState==="visible")loadAll().then(r=>{if(r)rerender();});});
 })();
 </script>

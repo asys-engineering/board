@@ -20,6 +20,9 @@ window.supabase={createClient:()=>{
     board_me:({p_token})=>{const s=T.sessions[p_token];return s?{person:s.person,role:s.role}:null;},
     board_fetch:({p_token})=>{const s=sess(p_token);return {me:{person:s.person,role:s.role},people:T.people,items:T.items,settings:T.settings[0].value};},
     board_sessions:({p_token})=>{const s=sess(p_token);if(s.role!=='pm')throw new Error('pm_required');return Object.entries(T.sessions).map(([k,v])=>({person:v.person,role:v.role,at:new Date().toISOString(),exp:''}));},
+    board_add_photo:({p_token,p_item,p_b64})=>{const s=sess(p_token);const it=T.items.find(x=>x.id===p_item);if(!it)throw new Error('no_item');const id='ph'+Math.random().toString(36).slice(2,8);T.photos=T.photos||{};T.photos[id]=p_b64;it.photos=[...(it.photos||[]),id];return id;},
+    board_photo:({p_token,p_id})=>{sess(p_token);if(!T.photos||!T.photos[p_id])throw new Error('no_photo');return T.photos[p_id];},
+    board_delete_photo:({p_token,p_id})=>{sess(p_token);T.items.forEach(it=>{it.photos=(it.photos||[]).filter(x=>x!==p_id);});if(T.photos)delete T.photos[p_id];return null;},
     board_revoke_person:({p_token,p_person})=>{const s=sess(p_token);if(s.role!=='pm')throw new Error('pm_required');for(const k in T.sessions)if(T.sessions[k].person===p_person&&k!==p_token)delete T.sessions[k];return null;},
     board_create_item:({p_token,p_title,p_descr})=>{const s=sess(p_token);if(!p_title.trim())throw new Error('title_required');const no=T.items.reduce((m,x)=>Math.max(m,x.no),0)+1;const nm=T.people.find(x=>x.id===s.person)?.name||'';const r={id:'i'+no,no,title:p_title.trim(),descr:p_descr||'',priority:'normal',status:'acik',by_person:s.person,by_name:nm,at:now(),assignee:'',due:'',decision:'',meeting:'',closed_at:'',done_at:'',done_by:'',comments:[],updated_at:now()};T.items.push(r);return r;},
     board_update_item:({p_token,p_id,p_patch})=>{const s=sess(p_token);const cur=T.items.find(x=>x.id===p_id);if(!cur)throw new Error('no_item');const P=p_patch;
@@ -78,7 +81,11 @@ const item = (id, no, title, st, by, ass, due, extra = {}) => ({ id, no, title, 
     // create
     await page.click('#fab'); await page.fill('#nTitle', 'Blok 2 ВРУ-2 kablo kanalı eksik'); await page.fill('#nDesc', 'Aks 5-6'); await page.click('#nSave'); await page.waitForTimeout(300);
     if ((await page.locator('.it').count()) !== 1) throw new Error('item not created');
-    await page.click('#fab'); await page.fill('#nTitle', 'İkinci'); await page.click('#nSave'); await page.waitForTimeout(300);
+    await page.click('#fab'); await page.fill('#nTitle', 'İkinci');
+    await page.setInputFiles('#nPhoto', { name: 'p.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==', 'base64') }); await page.waitForTimeout(500);
+    if ((await page.locator('#nPhotos .ph').count()) !== 1) throw new Error('photo preview missing');
+    await page.click('#nSave'); await page.waitForTimeout(800);
+    if (!(await page.locator('.it', { hasText: 'İkinci' }).locator('text=📷 1').count())) throw new Error('photo badge missing');
     // edit own
     await page.locator('.it', { hasText: 'İkinci' }).click(); await page.waitForTimeout(100);
     if (await page.locator('#dAss').count()) throw new Error('PM box visible to site user');
@@ -104,6 +111,9 @@ const item = (id, no, title, st, by, ass, due, extra = {}) => ({ id, no, title, 
     // meeting
     await page.click('#tabs button[data-tab="toplanti"]'); await page.waitForTimeout(200);
     if (!(await page.locator('.mt').count())) throw new Error('meeting empty');
+    if (!(await page.locator('#weekMail').count())) throw new Error('week mail button missing');
+    await page.click('#projBtn'); await page.waitForTimeout(300); if (await page.locator('#projView').isHidden()) throw new Error('projection not opened'); if (!(await page.locator('#pjBody .ttl').count())) throw new Error('projection empty');
+    await page.click('#pjNext'); await page.waitForTimeout(100); await page.keyboard.press('Escape'); await page.waitForTimeout(200); if (!await page.locator('#projView').isHidden()) throw new Error('projection not closed');
     if (!(await page.locator('.mt.done').count())) throw new Error('done group missing');
     await page.locator('.mt.done .aKap').first().click(); await page.waitForTimeout(300);
     if (await page.locator('.mt.done').count()) throw new Error('close from meeting failed');
@@ -161,6 +171,17 @@ const item = (id, no, title, st, by, ass, due, extra = {}) => ({ id, no, title, 
     await page.click('#tabs button[data-tab="liste"]');
     await page.screenshot({ path: path.join(DIR, 'shot-mobile.png'), fullPage: true });
   });
+
+  // 2b. Auto language from browser locale
+  {
+    const browser = await chromium.launch(); const ctx = await browser.newContext({ locale: 'ru-RU' }); const page = await ctx.newPage();
+    await page.route('https://cdn.jsdelivr.net/**', r => r.fulfill({ body: MOCK, contentType: 'application/javascript' }));
+    await page.route('https://fonts.googleapis.com/**', r => r.fulfill({ body: '', contentType: 'text/css' }));
+    await page.route('**/config.js', r => r.fulfill({ body: 'window.BOARD_CONFIG={url:"https://example.supabase.co",key:"test"};', contentType: 'application/javascript' }));
+    await page.goto('file://' + path.join(SITE, 'index.html')); await page.waitForTimeout(400);
+    const tab = await page.locator('#tabs button[data-tab="liste"] span').first().textContent(); if (!/Открытые/.test(tab)) errors.push('[autolang] RU not auto-selected: ' + tab);
+    await browser.close();
+  }
 
   // 3. Expired token → re-login prompt
   await run('expired', { ls: { token: 'dead', me: 'p2' } }, async (page) => {
