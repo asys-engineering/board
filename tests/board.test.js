@@ -124,6 +124,7 @@ const item = (id, no, title, st, by, ass, due, extra = {}) => ({ id, no, title, 
     await page.locator('#people .person', { hasText: 'Yeni Kişi' }).locator('.tg').click(); await page.waitForTimeout(300);
     if (!(await page.locator('#people .person.off').count())) throw new Error('passive failed');
     await page.waitForTimeout(300); if (!(await page.locator('#sessList .person').count())) throw new Error('sessions list empty');
+    await page.fill('#projInp', 'Test Şantiyesi'); await page.click('#saveProj'); await page.waitForTimeout(300); if ((await page.locator('#projName').textContent()) !== 'Test Şantiyesi') throw new Error('project name not applied');
     await page.fill('#newPass', 'yeni1234'); await page.click('#savePass'); await page.waitForTimeout(300);
     if ((await page.evaluate(() => window.__db.pm)) !== 'yeni1234') throw new Error('pm pass change failed');
     const dlP2 = page.waitForEvent('download', { timeout: 30000 }); await page.click('#allPdf'); await dlP2;
