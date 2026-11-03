@@ -185,7 +185,7 @@ td input,td select{min-height:32px;padding:4px 8px}
     <div class="hright">
       <span id="whoami"></span>
       <button class="hbtn" id="btnPm" hidden></button>
-      <button class="hbtn" id="btnWho" data-t="logout">Çıkış</button>
+      <button class="hbtn" id="btnWho">Çıkış</button>
       <button class="hbtn lang" id="btnLang">RU</button>
     </div>
   </div>
@@ -298,7 +298,7 @@ td input,td select{min-height:32px;padding:4px 8px}
 
 <!-- WHO -->
 <div class="modal" id="mWho" hidden><div class="box">
-  <div class="hd"><h2 data-t="who_title">Giriş</h2></div>
+  <div class="hd"><h2 data-t="who_title">Giriş</h2><button class="x" data-close="mWho" aria-label="Kapat">×</button></div>
   <p class="muted" data-t="who_hint">Adınızı seçin, PIN kodunuzu girin. PIN'i Proje Müdürü verir.</p>
   <div class="pick" id="whoPick"></div>
   <div id="pinBox" hidden>
@@ -334,7 +334,7 @@ td input,td select{min-height:32px;padding:4px 8px}
 <script>
 /* ---------- i18n ---------- */
 const I18N={
-tr:{user:"Kullanıcı",logout:"Çıkış",back:"← Geri",pin_ph:"PIN",pin_new_ph:"PIN (4 hane)",pin_wrong:"PIN yanlış.",pin_reset:"PIN",pin_reset_title:"PIN belirle",pin_saved:"PIN kaydedildi",pin_min:"PIN en az 4 hane",login_req:"Giriş yapın",session_lost:"Oturum sona erdi, tekrar giriş yapın",offline:"Bağlantı yok — veriler güncellenemiyor",tab_list:"Açık Konular",tab_meet:"Toplantı",tab_dash:"Gösterge",tab_set:"Ayarlar",day_copy:"Günlük özet (WhatsApp)",search_ph:"Ara: no, konu, kişi",
+tr:{user:"Kullanıcı",logout:"Çıkış",logged_out:"Çıkış yapıldı — panel salt okunur",back:"← Geri",pin_ph:"PIN",pin_new_ph:"PIN (4 hane)",pin_wrong:"PIN yanlış.",pin_reset:"PIN",pin_reset_title:"PIN belirle",pin_saved:"PIN kaydedildi",pin_min:"PIN en az 4 hane",login_req:"Giriş yapın",session_lost:"Oturum sona erdi, tekrar giriş yapın",offline:"Bağlantı yok — veriler güncellenemiyor",tab_list:"Açık Konular",tab_meet:"Toplantı",tab_dash:"Gösterge",tab_set:"Ayarlar",day_copy:"Günlük özet (WhatsApp)",search_ph:"Ara: no, konu, kişi",
  f_to:"Bana atananlar",f_by:"Benim açtıklarım",f_late:"Termini geçenler",
  meet_title:"Haftalık Koordinasyon Toplantısı",meet_hint:"Açık maddeler öncelik sırasıyla listelenir. Her madde için sorumlu, termin ve karar yazın. Sorumlusu veya termini olmayan maddeler kırmızı işaretlidir. Toplantı sonunda protokolü indirin.",
  proto_copy:"Protokolü kopyala (WhatsApp)",proto_pdf:"Protokol PDF indir",dl_hint:"İndirirken tarayıcı onay ister; «İzin ver / Kaydet» deyin.",pdf_prep:"PDF hazırlanıyor…",pdf_load_fail:"PDF modülü yüklenemedi — internet bağlantısını kontrol edin",pdf_generated:"oluşturuldu",pdf_page:"Sayfa",pdf_pm:"Proje Müdürü",pdf_open_all:"Açık ve bekleyen maddeler",pdf_closed_all:"Kapatılan / iptal edilen maddeler",pdf_all_title:"Saha Takip Raporu",pdf_all_sub:"Tüm maddeler",
@@ -361,7 +361,7 @@ tr:{user:"Kullanıcı",logout:"Çıkış",back:"← Geri",pin_ph:"PIN",pin_new_p
  active:"Aktif yap",passive:"Pasif yap",nobody:"Henüz kimse eklenmedi.",name_req:"Ad Soyad yazın",added:"eklendi",pass_min:"En az 4 karakter",pass_changed:"Şifre değiştirildi",deleted_person:"(silinmiş)",
  proto_h:"Haftalık Koordinasyon Toplantısı",proto_open:"Açık madde",status:"Durum",closed_week:"Bu hafta kapanan",done_week:"Yapıldı, onay bekliyor",proto_title:"Toplantı Protokolü",proto_sign:"Katılımcılar / imza",closed_items:"Bu hafta kapanan maddeler",type:"Tür",zone:"Bölge",subj_desc:"Konu / Açıklama",
  day_h:"Günlük özet",day_open:"Açık",day_crit:"Kritik",day_late:"Termini geçen",day_unass:"Sorumlusuz",day_done:"Yapıldı, onay bekliyor",day_new:"Dün açılan",day_closed:"Bu hafta kapanan",day_late_list:"Termini geçenler"},
-ru:{user:"Пользователь",logout:"Выйти",back:"← Назад",pin_ph:"PIN",pin_new_ph:"PIN (4 цифры)",pin_wrong:"Неверный PIN.",pin_reset:"PIN",pin_reset_title:"Задать PIN",pin_saved:"PIN сохранён",pin_min:"PIN минимум 4 цифры",login_req:"Войдите",session_lost:"Сеанс истёк, войдите снова",offline:"Нет связи — данные не обновляются",tab_list:"Открытые вопросы",tab_meet:"Совещание",tab_dash:"Сводка",tab_set:"Настройки",day_copy:"Сводка дня (WhatsApp)",search_ph:"Поиск: №, тема, человек",
+ru:{user:"Пользователь",logout:"Выйти",logged_out:"Вы вышли — панель только для чтения",back:"← Назад",pin_ph:"PIN",pin_new_ph:"PIN (4 цифры)",pin_wrong:"Неверный PIN.",pin_reset:"PIN",pin_reset_title:"Задать PIN",pin_saved:"PIN сохранён",pin_min:"PIN минимум 4 цифры",login_req:"Войдите",session_lost:"Сеанс истёк, войдите снова",offline:"Нет связи — данные не обновляются",tab_list:"Открытые вопросы",tab_meet:"Совещание",tab_dash:"Сводка",tab_set:"Настройки",day_copy:"Сводка дня (WhatsApp)",search_ph:"Поиск: №, тема, человек",
  f_to:"Назначено мне",f_by:"Мои записи",f_late:"Просроченные",
  meet_title:"Еженедельное координационное совещание",meet_hint:"Открытые пункты идут по приоритету. По каждому укажите ответственного, срок и решение. Пункты без ответственного или срока помечены красным. В конце скачайте протокол.",
  proto_copy:"Скопировать протокол (WhatsApp)",proto_pdf:"Скачать протокол PDF",dl_hint:"При скачивании браузер запросит подтверждение — нажмите «Разрешить / Сохранить».",pdf_prep:"Готовим PDF…",pdf_load_fail:"Модуль PDF не загрузился — проверьте интернет",pdf_generated:"сформирован",pdf_page:"Стр.",pdf_pm:"Руководитель проекта",pdf_open_all:"Открытые и ожидающие пункты",pdf_closed_all:"Закрытые / отменённые пункты",pdf_all_title:"Отчёт по объекту",pdf_all_sub:"Все пункты",
@@ -433,7 +433,7 @@ function showTab(id){document.querySelectorAll("#tabs button").forEach(x=>x.clas
 document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{if(b.dataset.tab==="ayarlar"&&!isPm)return;showTab(b.dataset.tab);});
 window.addEventListener("hashchange",()=>{const h=location.hash.replace("#","");if(["liste","toplanti","gosterge","ayarlar"].includes(h))showTab(h);});
 /* ---------- header / identity ---------- */
-function renderWho(){const e=$("whoami");const n=myName();e.innerHTML=n?`<span class="nm">${esc(n)}</span> `+(isPm?`<span class="role pm">${t("role_pm")}</span>`:`<span class="role">${t("role_site")}</span>`):`<span class="role">${t("no_login")}</span>`;$("btnPm").hidden=!meId;$("btnWho").hidden=!meId;$("btnPm").textContent=isPm?t("pm_logout"):t("pm_login");$("tabAyar").hidden=!isPm;if(!isPm&&document.querySelector("#ayarlar.on"))showTab("liste");}
+function renderWho(){const e=$("whoami");const n=myName();e.innerHTML=n?`<span class="nm">${esc(n)}</span> `+(isPm?`<span class="role pm">${t("role_pm")}</span>`:`<span class="role">${t("role_site")}</span>`):`<span class="role">${t("no_login")}</span>`;$("btnPm").hidden=!meId;$("btnWho").hidden=false;$("btnWho").textContent=meId?t("logout"):t("login");$("btnPm").textContent=isPm?t("pm_logout"):t("pm_login");$("tabAyar").hidden=!isPm;if(!isPm&&document.querySelector("#ayarlar.on"))showTab("liste");}
 let pendingPerson=null;
 function openWho(){const pick=$("whoPick");pick.innerHTML="";pick.hidden=false;$("pinBox").hidden=true;$("pinErr").hidden=true;$("pinInp").value="";const act=Object.entries(people).filter(([,p])=>p.active!==false).sort((a,b)=>a[1].name.localeCompare(b[1].name,"tr"));
   if(!act.length){pick.innerHTML=`<div class="empty">${t("team_empty")}</div>`;}
@@ -441,8 +441,8 @@ function openWho(){const pick=$("whoPick");pick.innerHTML="";pick.hidden=false;$
   $("whoNote").textContent=t("who_ro");$("mWho").hidden=false;}
 $("pinBack").onclick=()=>openWho();
 $("pinInp").addEventListener("keydown",e=>{if(e.key==="Enter")$("pinGo").click();});
-$("pinGo").onclick=async()=>{const pin=$("pinInp").value.trim();if(!pendingPerson||!pin)return;$("pinGo").disabled=true;try{const {data,error}=await sb.rpc("board_login",{p_person:pendingPerson,p_pin:pin});if(error)throw error;token=data.token;meId=data.person;myRole=data.role;isPm=myRole==="pm";lsSet("token",token);lsSet("me",meId);$("mWho").hidden=true;autoMine=false;pickDefaultFilter();renderWho();renderList();}catch(e){console.error(e);$("pinErr").hidden=false;$("pinInp").value="";$("pinInp").focus();}$("pinGo").disabled=false;};
-$("btnWho").onclick=async()=>{if(!meId){openWho();return;}try{await sb.rpc("board_logout",{p_token:token});}catch(e){}token=null;meId=null;isPm=false;myRole="site";lsSet("token",null);lsSet("me",null);renderWho();renderList();openWho();};
+$("pinGo").onclick=async()=>{const pin=$("pinInp").value.trim();if(!pendingPerson||!pin)return;$("pinGo").disabled=true;try{const {data,error}=await sb.rpc("board_login",{p_person:pendingPerson,p_pin:pin});if(error)throw error;token=data.token;meId=data.person;myRole=data.role;isPm=myRole==="pm";lsSet("token",token);lsSet("me",meId);lsSet("loggedOut",null);$("mWho").hidden=true;autoMine=false;pickDefaultFilter();renderWho();renderList();}catch(e){console.error(e);$("pinErr").hidden=false;$("pinInp").value="";$("pinInp").focus();}$("pinGo").disabled=false;};
+$("btnWho").onclick=async()=>{if(!meId){openWho();return;}try{await sb.rpc("board_logout",{p_token:token});}catch(e){}token=null;meId=null;isPm=false;myRole="site";lsSet("token",null);lsSet("me",null);lsSet("loggedOut","1");filt.mine=null;$("mineChips").querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));renderWho();renderList();toast(t("logged_out"));};
 $("btnPm").onclick=async()=>{if(isPm){try{await sb.rpc("board_pm_logout",{p_token:token});}catch(e){}isPm=false;myRole="site";renderWho();renderList();toast(t("pm_off"));}else{$("pmPass").value="";$("pmErr").hidden=true;$("mPm").hidden=false;setTimeout(()=>$("pmPass").focus(),50);}};
 $("pmGo").onclick=async()=>{const {data,error}=await sb.rpc("board_pm_login",{p_token:token,p_pass:$("pmPass").value.trim()});if(!error&&data&&data.role==="pm"){isPm=true;myRole="pm";$("mPm").hidden=true;renderWho();renderList();toast(t("pm_on"));}else{$("pmErr").hidden=false;}};
 $("pmPass").addEventListener("keydown",e=>{if(e.key==="Enter")$("pmGo").click();});
@@ -635,7 +635,7 @@ applyLang();
   if(token){try{const me=await rpc("board_me",{p_token:token});if(me&&people[me.person]){meId=me.person;myRole=me.role;isPm=myRole==="pm";}else{token=null;meId=null;lsSet("token",null);}}catch(e){token=null;meId=null;}}
   if(!token){meId=null;}
   pickDefaultFilter();renderWho();renderList();if(!$("mWho").hidden)openWho();
-  if(!meId)openWho();
+  if(!meId&&!lsGet("loggedOut"))openWho();
   const cur=document.querySelector("main section.on")?.id;if(cur==="toplanti")renderMeet();if(cur==="gosterge")renderDash();if(cur==="ayarlar")renderSettings();
   // canlı güncelleme: değişiklikte ilgili tabloyu yeniden çek; kanal kopuksa 30 sn'de bir yenile
   let live=false;

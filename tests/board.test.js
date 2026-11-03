@@ -122,7 +122,7 @@ const item = (id, no, title, st, by, ass, due, extra = {}) => ({ id, no, title, 
     const dlP2 = page.waitForEvent('download', { timeout: 30000 }); await page.click('#allPdf'); await dlP2;
     // PM logout, user logout
     await page.click('#btnPm'); await page.waitForTimeout(200); if (await page.locator('#whoami .role.pm').count()) throw new Error('pm logout failed');
-    await page.click('#btnWho'); await page.waitForTimeout(300); if (await page.locator('#mWho').isHidden()) throw new Error('logout did not reopen login');
+    await page.click('#btnWho'); await page.waitForTimeout(300); if (!await page.locator('#mWho').isHidden()) throw new Error('logout must not reopen login'); if (!/Giriş/.test(await page.locator('#btnWho').textContent())) throw new Error('button not Giriş after logout'); await page.click('#btnWho'); await page.waitForTimeout(200); if (await page.locator('#mWho').isHidden()) throw new Error('Giriş button did not open login');
     if (await page.evaluate(() => localStorage.getItem('asys-saha:token'))) throw new Error('token not cleared');
     await page.screenshot({ path: path.join(DIR, 'shot-full.png'), fullPage: true });
   });
