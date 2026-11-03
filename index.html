@@ -258,11 +258,12 @@ td input,td select{min-height:32px;padding:4px 8px}
 <section id="ayarlar">
   <div class="card">
     <h2 data-t="team">Ekip Listesi</h2>
-    <p class="muted" data-t="team_hint">Herkes bu listeden adını seçip PIN ile girer. Pasif yapılan kişi giriş yapamaz ama eski kayıtları kalır.</p>
+    <p class="muted" data-t="team_hint">Herkes e-posta ve şifresiyle girer. Geçici şifreyi kişiye iletin; kendisi değiştirir. Pasif yapılan kişi giriş yapamaz, kayıtları kalır.</p>
     <div class="row" style="margin-top:8px">
       <input id="pName" data-tp="name_ph" placeholder="Ad Soyad" style="flex:2;min-width:160px">
       <input id="pRole" data-tp="role_ph" placeholder="Görev (Şantiye Şefi, Elektrik Mühendisi…)" style="flex:2;min-width:160px">
-      <input id="pPin" inputmode="numeric" data-tp="pin_new_ph" placeholder="PIN (4 hane)" style="flex:1;min-width:110px;width:auto">
+      <input id="pEmail" type="email" autocapitalize="off" data-tp="email_ph" placeholder="E-posta" style="flex:2;min-width:180px">
+      <input id="pPin" data-tp="pin_new_ph" placeholder="Geçici şifre (min 6)" style="flex:1;min-width:150px;width:auto">
       <button class="btn sm" id="addPerson" data-t="add">Ekle</button>
     </div>
     <div id="people" style="margin-top:8px"></div>
@@ -299,15 +300,12 @@ td input,td select{min-height:32px;padding:4px 8px}
 <!-- WHO -->
 <div class="modal" id="mWho" hidden><div class="box">
   <div class="hd"><h2 data-t="who_title">Giriş</h2><button class="x" data-close="mWho" aria-label="Kapat">×</button></div>
-  <p class="muted" data-t="who_hint">Adınızı seçin, PIN kodunuzu girin. PIN'i Proje Müdürü verir.</p>
-  <div class="pick" id="whoPick"></div>
-  <div id="pinBox" hidden>
-    <div class="row" style="margin-top:6px"><b id="pinName" style="flex:1"></b><button class="btn ghost sm" id="pinBack" data-t="back">← Geri</button></div>
-    <input type="password" id="pinInp" inputmode="numeric" autocomplete="current-password" data-tp="pin_ph" placeholder="PIN" style="margin-top:8px;font-size:20px;letter-spacing:6px;text-align:center">
-    <p class="ro" id="pinErr" hidden data-t="pin_wrong">PIN yanlış.</p>
-    <button class="btn" id="pinGo" style="width:100%;margin-top:10px" data-t="login">Giriş</button>
-  </div>
-  <p class="muted" id="whoNote"></p>
+  <p class="muted" data-t="who_hint">Şirket e-postanız ve şifrenizle girin. Şifreyi yönetici verir; ilk girişten sonra değiştirebilirsiniz.</p>
+  <label class="f" style="margin-top:6px"><span data-t="email">E-posta</span><input type="email" id="emailInp" inputmode="email" autocomplete="username" autocapitalize="off" placeholder="ad.soyad@asys-engineering.com"></label>
+  <label class="f" style="margin-top:8px"><span data-t="password">Şifre</span><input type="password" id="pinInp" autocomplete="current-password" data-tp="pass_ph" placeholder="Şifre"></label>
+  <p class="ro" id="pinErr" hidden data-t="pin_wrong">E-posta veya şifre yanlış.</p>
+  <button class="btn" id="pinGo" style="width:100%;margin-top:12px" data-t="login">Giriş</button>
+  <p class="muted" id="whoNote" style="margin-top:8px"></p>
 </div></div>
 
 <!-- PM LOGIN -->
@@ -319,10 +317,19 @@ td input,td select{min-height:32px;padding:4px 8px}
   <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn ghost" data-close="mPm" data-t="cancel">Vazgeç</button><button class="btn" id="pmGo" data-t="login">Giriş</button></div>
 </div></div>
 
+<!-- CHANGE OWN PASSWORD -->
+<div class="modal" id="mPwd" hidden><div class="box">
+  <div class="hd"><h2 data-t="pwd_title">Şifremi değiştir</h2><button class="x" data-close="mPwd" aria-label="Kapat">×</button></div>
+  <label class="f"><span data-t="pwd_old">Mevcut şifre</span><input type="password" id="pwdOld" autocomplete="current-password"></label>
+  <label class="f" style="margin-top:8px"><span data-t="pwd_new">Yeni şifre (min 6)</span><input type="password" id="pwdNew" autocomplete="new-password"></label>
+  <p class="ro" id="pwdErr" hidden></p>
+  <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn ghost" data-close="mPwd" data-t="cancel">Vazgeç</button><button class="btn" id="pwdGo" data-t="save">Kaydet</button></div>
+</div></div>
+
 <!-- PIN RESET -->
 <div class="modal" id="mPin" hidden><div class="box">
   <div class="hd"><h2 id="mPinTitle"></h2><button class="x" data-close="mPin" aria-label="Kapat">×</button></div>
-  <input id="mPinInp" inputmode="numeric" data-tp="pin_new_ph" placeholder="PIN (4 hane)" style="font-size:20px;letter-spacing:6px;text-align:center">
+  <input id="mPinInp" data-tp="pin_new_ph" placeholder="Geçici şifre (min 6)">
   <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn ghost" data-close="mPin" data-t="cancel">Vazgeç</button><button class="btn" id="mPinGo" data-t="save">Kaydet</button></div>
 </div></div>
 
@@ -334,15 +341,15 @@ td input,td select{min-height:32px;padding:4px 8px}
 <script>
 /* ---------- i18n ---------- */
 const I18N={
-tr:{user:"Kullanıcı",logout:"Çıkış",logged_out:"Çıkış yapıldı — panel salt okunur",back:"← Geri",pin_ph:"PIN",pin_new_ph:"PIN (4 hane)",pin_wrong:"PIN yanlış.",pin_reset:"PIN",pin_reset_title:"PIN belirle",pin_saved:"PIN kaydedildi",pin_min:"PIN en az 4 hane",login_req:"Giriş yapın",session_lost:"Oturum sona erdi, tekrar giriş yapın",offline:"Bağlantı yok — veriler güncellenemiyor",tab_list:"Açık Konular",tab_meet:"Toplantı",tab_dash:"Gösterge",tab_set:"Ayarlar",day_copy:"Günlük özet (WhatsApp)",search_ph:"Ara: no, konu, kişi",
+tr:{user:"Kullanıcı",logout:"Çıkış",logged_out:"Çıkış yapıldı — panel salt okunur",back:"← Geri",email:"E-posta",password:"Şifre",email_ph:"E-posta",pin_ph:"Şifre",pin_new_ph:"Geçici şifre (min 6)",pin_wrong:"E-posta veya şifre yanlış.",pin_reset:"Şifre sıfırla",pin_reset_title:"Geçici şifre",pin_saved:"Şifre kaydedildi",pin_min:"Şifre en az 6 karakter",email_req:"Geçerli e-posta yazın",pwd_title:"Şifremi değiştir",pwd_old:"Mevcut şifre",pwd_new:"Yeni şifre (min 6)",pwd_bad_old:"Mevcut şifre yanlış",pwd_changed:"Şifreniz değiştirildi",login_req:"Giriş yapın",session_lost:"Oturum sona erdi, tekrar giriş yapın",offline:"Bağlantı yok — veriler güncellenemiyor",tab_list:"Açık Konular",tab_meet:"Toplantı",tab_dash:"Gösterge",tab_set:"Ayarlar",day_copy:"Günlük özet (WhatsApp)",search_ph:"Ara: no, konu, kişi",
  f_to:"Bana atananlar",f_by:"Benim açtıklarım",f_late:"Termini geçenler",
  meet_title:"Haftalık Koordinasyon Toplantısı",meet_hint:"Açık maddeler öncelik sırasıyla listelenir. Her madde için sorumlu, termin ve karar yazın. Sorumlusu veya termini olmayan maddeler kırmızı işaretlidir. Toplantı sonunda protokolü indirin.",
  proto_copy:"Protokolü kopyala (WhatsApp)",proto_pdf:"Protokol PDF indir",dl_hint:"İndirirken tarayıcı onay ister; «İzin ver / Kaydet» deyin.",pdf_prep:"PDF hazırlanıyor…",pdf_load_fail:"PDF modülü yüklenemedi — internet bağlantısını kontrol edin",pdf_generated:"oluşturuldu",pdf_page:"Sayfa",pdf_pm:"Yönetici",pdf_open_all:"Açık ve bekleyen maddeler",pdf_closed_all:"Kapatılan / iptal edilen maddeler",pdf_all_title:"Saha Takip Raporu",pdf_all_sub:"Tüm maddeler",
  by_who:"Sorumluya göre açık",by_by:"Kim ne kadar madde açtı",wk_title:"Son 8 hafta: açılan / kapanan",
- team:"Ekip Listesi",team_hint:"Herkes bu listeden adını seçip PIN ile girer. Pasif yapılan kişi giriş yapamaz ama eski kayıtları kalır.",name_ph:"Ad Soyad",role_ph:"Görev (Şantiye Şefi, Elektrik Mühendisi…)",add:"Ekle",
+ team:"Ekip Listesi",team_hint:"Herkes e-posta ve şifresiyle girer. Geçici şifreyi kişiye iletin; kendisi değiştirir. Pasif yapılan kişi giriş yapamaz, kayıtları kalır.",name_ph:"Ad Soyad",role_ph:"Görev (Şantiye Şefi, Elektrik Mühendisi…)",add:"Ekle",
  pm_pass:"Yönetici Şifresi",pm_pass_hint:"Toplantıda sorumlu atama, kapatma ve bu ayarlar sayfası için gerekir.",new_pass_ph:"Yeni şifre",change_pass:"Şifreyi değiştir",export:"Dışa aktar",all_pdf:"Tüm maddeler PDF",
  new_item:"+ Yeni Madde",new_title:"Yeni Madde",edit_title:"Düzenle",subject:"Konu",subject_ph:"Örn: Blok 2 ВРУ-2 kablo kanalı eksik",descr:"Açıklama",descr_ph:"Ne eksik / ne soruluyor, nerede",cancel:"Vazgeç",save:"Kaydet",
- who_title:"Giriş",who_hint:"Adınızı seçin, PIN kodunuzu girin. PIN'i yönetici verir.",who_owner:"",who_ro:"Giriş yapmadan sadece okuyabilirsiniz.",team_empty:"Ekip listesi henüz boş. Yönetici, «Ayarlar» sayfasından ekibi ekler.",
+ who_title:"Giriş",who_hint:"Şirket e-postanız ve şifrenizle girin. Şifreyi yönetici verir; ilk girişten sonra değiştirebilirsiniz.",who_owner:"",who_ro:"Giriş yapmadan sadece okuyabilirsiniz.",team_empty:"Ekip listesi henüz boş. Yönetici, «Ayarlar» sayfasından ekibi ekler.",
  pm_login:"Yönetici Girişi",pm_logout:"Yönetici Çıkış",pm_login_hint:"Sorumlu atama, termin, kapatma ve ayarlar için yönetici şifresi.",pass_ph:"Şifre",pass_wrong:"Şifre yanlış.",login:"Giriş",pm_on:"Yönetici modu açık",pm_off:"Yönetici oturumu kapatıldı",
  role_pm:"YÖNETİCİ",role_site:"SAHA",no_login:"GİRİŞ YOK",yes:"Evet",
  st_acik:"Açık",st_gorusuldu:"Görüşüldü",st_cozumde:"Çözümde",st_yapildi:"Yapıldı",st_kapali:"Kapalı",st_iptal:"İptal",
@@ -361,15 +368,15 @@ tr:{user:"Kullanıcı",logout:"Çıkış",logged_out:"Çıkış yapıldı — pa
  active:"Aktif yap",passive:"Pasif yap",nobody:"Henüz kimse eklenmedi.",name_req:"Ad Soyad yazın",added:"eklendi",pass_min:"En az 4 karakter",pass_changed:"Şifre değiştirildi",deleted_person:"(silinmiş)",
  proto_h:"Haftalık Koordinasyon Toplantısı",proto_open:"Açık madde",status:"Durum",closed_week:"Bu hafta kapanan",done_week:"Yapıldı, onay bekliyor",proto_title:"Toplantı Protokolü",proto_sign:"Katılımcılar / imza",closed_items:"Bu hafta kapanan maddeler",type:"Tür",zone:"Bölge",subj_desc:"Konu / Açıklama",
  day_h:"Günlük özet",day_open:"Açık",day_crit:"Kritik",day_late:"Termini geçen",day_unass:"Sorumlusuz",day_done:"Yapıldı, onay bekliyor",day_new:"Dün açılan",day_closed:"Bu hafta kapanan",day_late_list:"Termini geçenler"},
-ru:{user:"Пользователь",logout:"Выйти",logged_out:"Вы вышли — панель только для чтения",back:"← Назад",pin_ph:"PIN",pin_new_ph:"PIN (4 цифры)",pin_wrong:"Неверный PIN.",pin_reset:"PIN",pin_reset_title:"Задать PIN",pin_saved:"PIN сохранён",pin_min:"PIN минимум 4 цифры",login_req:"Войдите",session_lost:"Сеанс истёк, войдите снова",offline:"Нет связи — данные не обновляются",tab_list:"Открытые вопросы",tab_meet:"Совещание",tab_dash:"Сводка",tab_set:"Настройки",day_copy:"Сводка дня (WhatsApp)",search_ph:"Поиск: №, тема, человек",
+ru:{user:"Пользователь",logout:"Выйти",logged_out:"Вы вышли — панель только для чтения",back:"← Назад",email:"E-mail",password:"Пароль",email_ph:"E-mail",pin_ph:"Пароль",pin_new_ph:"Временный пароль (мин. 6)",pin_wrong:"Неверный e-mail или пароль.",pin_reset:"Сбросить пароль",pin_reset_title:"Временный пароль",pin_saved:"Пароль сохранён",pin_min:"Пароль минимум 6 символов",email_req:"Введите корректный e-mail",pwd_title:"Сменить пароль",pwd_old:"Текущий пароль",pwd_new:"Новый пароль (мин. 6)",pwd_bad_old:"Текущий пароль неверен",pwd_changed:"Пароль изменён",login_req:"Войдите",session_lost:"Сеанс истёк, войдите снова",offline:"Нет связи — данные не обновляются",tab_list:"Открытые вопросы",tab_meet:"Совещание",tab_dash:"Сводка",tab_set:"Настройки",day_copy:"Сводка дня (WhatsApp)",search_ph:"Поиск: №, тема, человек",
  f_to:"Назначено мне",f_by:"Мои записи",f_late:"Просроченные",
  meet_title:"Еженедельное координационное совещание",meet_hint:"Открытые пункты идут по приоритету. По каждому укажите ответственного, срок и решение. Пункты без ответственного или срока помечены красным. В конце скачайте протокол.",
  proto_copy:"Скопировать протокол (WhatsApp)",proto_pdf:"Скачать протокол PDF",dl_hint:"При скачивании браузер запросит подтверждение — нажмите «Разрешить / Сохранить».",pdf_prep:"Готовим PDF…",pdf_load_fail:"Модуль PDF не загрузился — проверьте интернет",pdf_generated:"сформирован",pdf_page:"Стр.",pdf_pm:"Руководитель проекта",pdf_open_all:"Открытые и ожидающие пункты",pdf_closed_all:"Закрытые / отменённые пункты",pdf_all_title:"Отчёт по объекту",pdf_all_sub:"Все пункты",
  by_who:"Открытые по ответственным",by_by:"Кто сколько записал",wk_title:"Последние 8 недель: открыто / закрыто",
- team:"Список команды",team_hint:"Каждый выбирает своё имя и входит по PIN. Неактивный не может войти, но его записи остаются.",name_ph:"Фамилия Имя",role_ph:"Должность (прораб, инженер-электрик…)",add:"Добавить",
+ team:"Список команды",team_hint:"Каждый входит по e-mail и паролю. Передайте временный пароль сотруднику; он сменит его сам. Неактивный не может войти, записи остаются.",name_ph:"Фамилия Имя",role_ph:"Должность (прораб, инженер-электрик…)",add:"Добавить",
  pm_pass:"Пароль руководителя",pm_pass_hint:"Нужен для назначения ответственных, закрытия пунктов и этой страницы.",new_pass_ph:"Новый пароль",change_pass:"Изменить пароль",export:"Экспорт",all_pdf:"Все пункты PDF",
  new_item:"+ Новый пункт",new_title:"Новый пункт",edit_title:"Изменить",subject:"Тема",subject_ph:"Напр.: Блок 2 ВРУ-2 нет кабельного лотка",descr:"Описание",descr_ph:"Чего не хватает / в чём вопрос, где",cancel:"Отмена",save:"Сохранить",
- who_title:"Вход",who_hint:"Выберите своё имя и введите PIN. PIN выдаёт руководитель.",who_owner:"",who_ro:"Без входа — только просмотр.",team_empty:"Список команды пуст. Руководитель добавляет людей в «Настройках».",
+ who_title:"Вход",who_hint:"Войдите с рабочим e-mail и паролем. Пароль выдаёт руководитель; после первого входа его можно сменить.",who_owner:"",who_ro:"Без входа — только просмотр.",team_empty:"Список команды пуст. Руководитель добавляет людей в «Настройках».",
  pm_login:"Вход руководителя",pm_logout:"Выход руководителя",pm_login_hint:"Пароль руководителя для назначения, сроков, закрытия и настроек.",pass_ph:"Пароль",pass_wrong:"Неверный пароль.",login:"Войти",pm_on:"Режим руководителя включён",pm_off:"Сеанс руководителя завершён",
  role_pm:"РУКОВОДИТЕЛЬ",role_site:"ОБЪЕКТ",no_login:"НЕТ ВХОДА",yes:"Да",
  st_acik:"Открыт",st_gorusuldu:"Обсуждён",st_cozumde:"В работе",st_yapildi:"Сделано",st_kapali:"Закрыт",st_iptal:"Отменён",
@@ -434,14 +441,12 @@ document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{if(b.dataset
 window.addEventListener("hashchange",()=>{const h=location.hash.replace("#","");if(["liste","toplanti","gosterge","ayarlar"].includes(h))showTab(h);});
 /* ---------- header / identity ---------- */
 function renderWho(){const e=$("whoami");const n=myName();e.innerHTML=n?`<span class="nm">${esc(n)}</span> `+(isPm?`<span class="role pm">${t("role_pm")}</span>`:`<span class="role">${t("role_site")}</span>`):`<span class="role">${t("no_login")}</span>`;$("btnPm").hidden=!meId;$("btnWho").hidden=false;$("btnWho").textContent=meId?t("logout"):t("login");$("btnPm").textContent=isPm?t("pm_logout"):t("pm_login");$("tabAyar").hidden=!isPm;if(!isPm&&document.querySelector("#ayarlar.on"))showTab("liste");}
-let pendingPerson=null;
-function openWho(){const pick=$("whoPick");pick.innerHTML="";pick.hidden=false;$("pinBox").hidden=true;$("pinErr").hidden=true;$("pinInp").value="";const act=Object.entries(people).filter(([,p])=>p.active!==false).sort((a,b)=>a[1].name.localeCompare(b[1].name,"tr"));
-  if(!act.length){pick.innerHTML=`<div class="empty">${t("team_empty")}</div>`;}
-  act.forEach(([id,p])=>{const b=document.createElement("button");b.innerHTML=`${esc(p.name)}<small>${esc(p.role||"")}</small>`;b.onclick=()=>{pendingPerson=id;$("pinName").textContent=p.name;pick.hidden=true;$("pinBox").hidden=false;setTimeout(()=>$("pinInp").focus(),50);};pick.appendChild(b);});
-  $("whoNote").textContent=t("who_ro");$("mWho").hidden=false;}
-$("pinBack").onclick=()=>openWho();
+function openWho(){$("pinErr").hidden=true;$("pinInp").value="";const em=lsGet("email");if(em&&!$("emailInp").value)$("emailInp").value=em;$("whoNote").textContent=t("who_ro");$("mWho").hidden=false;setTimeout(()=>($("emailInp").value?$("pinInp"):$("emailInp")).focus(),50);}
 $("pinInp").addEventListener("keydown",e=>{if(e.key==="Enter")$("pinGo").click();});
-$("pinGo").onclick=async()=>{const pin=$("pinInp").value.trim();if(!pendingPerson||!pin)return;$("pinGo").disabled=true;try{const {data,error}=await sb.rpc("board_login",{p_person:pendingPerson,p_pin:pin});if(error)throw error;token=data.token;meId=data.person;myRole=data.role;isPm=myRole==="pm";lsSet("token",token);lsSet("me",meId);lsSet("loggedOut",null);$("mWho").hidden=true;autoMine=false;pickDefaultFilter();renderWho();renderList();}catch(e){console.error(e);$("pinErr").hidden=false;$("pinInp").value="";$("pinInp").focus();}$("pinGo").disabled=false;};
+$("emailInp").addEventListener("keydown",e=>{if(e.key==="Enter")$("pinInp").focus();});
+$("pinGo").onclick=async()=>{const email=$("emailInp").value.trim().toLowerCase();const pin=$("pinInp").value;if(!email||!pin)return;$("pinGo").disabled=true;try{const {data,error}=await sb.rpc("board_login",{p_email:email,p_password:pin});if(!error)lsSet("email",email);if(error)throw error;token=data.token;meId=data.person;myRole=data.role;isPm=myRole==="pm";lsSet("token",token);lsSet("me",meId);lsSet("loggedOut",null);$("mWho").hidden=true;autoMine=false;pickDefaultFilter();renderWho();renderList();}catch(e){console.error(e);$("pinErr").hidden=false;$("pinInp").value="";$("pinInp").focus();}$("pinGo").disabled=false;};
+$("whoami").style.cursor="pointer";$("whoami").title="";$("whoami").onclick=()=>{if(!meId)return;$("pwdOld").value="";$("pwdNew").value="";$("pwdErr").hidden=true;$("mPwd").hidden=false;setTimeout(()=>$("pwdOld").focus(),50);};
+$("pwdGo").onclick=async()=>{const o=$("pwdOld").value,n=$("pwdNew").value;if(n.length<6){$("pwdErr").textContent=t("pin_min");$("pwdErr").hidden=false;return;}try{await rpc("board_change_password",{p_token:token,p_old:o,p_new:n});$("mPwd").hidden=true;toast(t("pwd_changed"));}catch(e){$("pwdErr").textContent=/bad_old/.test(e.message||"")?t("pwd_bad_old"):t("save_fail");$("pwdErr").hidden=false;}};
 $("btnWho").onclick=async()=>{if(!meId){openWho();return;}try{await sb.rpc("board_logout",{p_token:token});}catch(e){}token=null;meId=null;isPm=false;myRole="site";lsSet("token",null);lsSet("me",null);lsSet("loggedOut","1");filt.mine=null;$("mineChips").querySelectorAll(".chip").forEach(x=>x.classList.remove("on"));renderWho();renderList();toast(t("logged_out"));};
 $("btnPm").onclick=async()=>{if(isPm){try{await sb.rpc("board_pm_logout",{p_token:token});}catch(e){}isPm=false;myRole="site";renderWho();renderList();toast(t("pm_off"));}else{$("pmPass").value="";$("pmErr").hidden=true;$("mPm").hidden=false;setTimeout(()=>$("pmPass").focus(),50);}};
 $("pmGo").onclick=async()=>{const {data,error}=await sb.rpc("board_pm_login",{p_token:token,p_pass:$("pmPass").value.trim()});if(!error&&data&&data.role==="pm"){isPm=true;myRole="pm";$("mPm").hidden=true;renderWho();renderList();toast(t("pm_on"));}else{$("pmErr").hidden=false;}};
@@ -491,7 +496,7 @@ async function rpc(name,args){const {data,error}=await sb.rpc(name,args);if(erro
 async function write(col,id,data){if(!sb||!token){toast(t("login_req"));openWho();return false;}
   try{
     if(col==="items"){const r=await rpc("board_update_item",{p_token:token,p_id:id,p_patch:data});items[id]=rowToItem(r);rerender();return true;}
-    if(col==="people"){const r=await rpc("board_upsert_person",{p_token:token,p_id:id,p_name:data.name,p_role:data.role||"",p_active:data.active!==false,p_pin:data.pin||null});people[r.id]={name:r.name,role:r.role,active:r.active};rerender();return true;}
+    if(col==="people"){const r=await rpc("board_upsert_person",{p_token:token,p_id:id,p_name:data.name,p_role:data.role||"",p_email:data.email||"",p_active:data.active!==false,p_pin:data.pin||null});people[r.id]={name:r.name,role:r.role,email:r.email,active:r.active};rerender();return true;}
     if(col==="settings"){await rpc("board_set_setting",{p_token:token,p_key:id,p_value:data});settings=data;return true;}
     return false;
   }catch(e){rpcErr(e);return false;}}
@@ -614,10 +619,10 @@ function renderDash(){const all=Object.values(items);const open=all.filter(it=>O
   const weeks=[];for(let w=7;w>=0;w--){const e=new Date();e.setDate(e.getDate()-w*7);const s=new Date(e);s.setDate(s.getDate()-6);const si=s.toISOString().slice(0,10),ei=e.toISOString().slice(0,10);weeks.push([fmtD(si).slice(0,5)+"–"+fmtD(ei).slice(0,5),all.filter(i=>{const d=(i.at||"").slice(0,10);return d>=si&&d<=ei;}).length,all.filter(i=>i.status==="kapali"&&(i.closedAt||"").slice(0,10)>=si&&(i.closedAt||"").slice(0,10)<=ei).length]);}
   $("wkTbl").innerHTML=`<tr><th>${t("week")}</th><th>${t("opened")}</th><th>${t("closed_n")}</th></tr>`+weeks.map(w=>`<tr><td>${w[0]}</td><td>${w[1]}</td><td>${w[2]}</td></tr>`).join("");}
 /* ---------- settings ---------- */
-function renderSettings(){const box=$("people");const ent=Object.entries(people).sort((a,b)=>a[1].name.localeCompare(b[1].name,"tr"));box.innerHTML=ent.length?ent.map(([id,p])=>`<div class="person ${p.active===false?"off":""}"><span class="nm">${esc(p.name)}<span class="muted" style="font-weight:600">${p.role?" · "+esc(p.role):""}</span></span><button class="btn sm ghost pr" data-id="${id}">${t("pin_reset")}</button><button class="btn sm ghost tg" data-id="${id}">${p.active===false?t("active"):t("passive")}</button></div>`).join(""):`<div class="muted">${t("nobody")}</div>`;
+function renderSettings(){const box=$("people");const ent=Object.entries(people).sort((a,b)=>a[1].name.localeCompare(b[1].name,"tr"));box.innerHTML=ent.length?ent.map(([id,p])=>`<div class="person ${p.active===false?"off":""}"><span class="nm">${esc(p.name)}<span class="muted" style="font-weight:600">${p.role?" · "+esc(p.role):""}</span><br><span class="muted" style="font-size:12px">${esc(p.email||"—")}</span></span><button class="btn sm ghost pr" data-id="${id}">${t("pin_reset")}</button><button class="btn sm ghost tg" data-id="${id}">${p.active===false?t("active"):t("passive")}</button></div>`).join(""):`<div class="muted">${t("nobody")}</div>`;
   box.querySelectorAll(".tg").forEach(b=>b.onclick=()=>{const p=people[b.dataset.id];write("people",b.dataset.id,{...p,active:p.active===false});});
-  box.querySelectorAll(".pr").forEach(b=>b.onclick=()=>{const p=people[b.dataset.id];$("mPinTitle").textContent=t("pin_reset_title")+" · "+p.name;$("mPinInp").value="";$("mPin").hidden=false;$("mPinGo").onclick=async()=>{const pin=$("mPinInp").value.trim();if(pin.length<4){toast(t("pin_min"));return;}if(await write("people",b.dataset.id,{...p,pin})){$("mPin").hidden=true;toast(t("pin_saved"));}};setTimeout(()=>$("mPinInp").focus(),50);});}
-$("addPerson").onclick=async()=>{const name=$("pName").value.trim();if(!name){toast(t("name_req"));return;}const pin=$("pPin").value.trim();if(pin.length<4){toast(t("pin_min"));$("pPin").focus();return;}if(await write("people","",{name,role:$("pRole").value.trim(),active:true,pin})){$("pName").value="";$("pRole").value="";$("pPin").value="";toast(name+" "+t("added"));}};
+  box.querySelectorAll(".pr").forEach(b=>b.onclick=()=>{const p=people[b.dataset.id];$("mPinTitle").textContent=t("pin_reset_title")+" · "+p.name;$("mPinInp").value="";$("mPin").hidden=false;$("mPinGo").onclick=async()=>{const pin=$("mPinInp").value.trim();if(pin.length<6){toast(t("pin_min"));return;}if(await write("people",b.dataset.id,{...p,pin})){$("mPin").hidden=true;toast(t("pin_saved"));}};setTimeout(()=>$("mPinInp").focus(),50);});}
+$("addPerson").onclick=async()=>{const name=$("pName").value.trim();if(!name){toast(t("name_req"));return;}const email=$("pEmail").value.trim().toLowerCase();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){toast(t("email_req"));$("pEmail").focus();return;}const pin=$("pPin").value.trim();if(pin.length<6){toast(t("pin_min"));$("pPin").focus();return;}if(await write("people","",{name,role:$("pRole").value.trim(),email,active:true,pin})){$("pName").value="";$("pRole").value="";$("pEmail").value="";$("pPin").value="";toast(name+" "+t("added"));}};
 $("savePass").onclick=async()=>{const p=$("newPass").value.trim();if(p.length<4){toast(t("pass_min"));return;}try{await rpc("board_set_pm_password",{p_token:token,p_pass:p});$("newPass").value="";toast(t("pass_changed"));}catch(e){rpcErr(e);}};
 /* ---------- boot ---------- */
 applyLang();
@@ -625,7 +630,7 @@ applyLang();
 (async()=>{
   if(!window.supabase||!SB_URL||!SB_KEY){$("roNote").textContent=t("noconn");$("roNote").hidden=false;renderWho();return;}
   sb=window.supabase.createClient(SB_URL,SB_KEY,{auth:{persistSession:false}});db=true;
-  const loadPeople=async()=>{const {data,error}=await sb.from("people").select("id,name,role,active");if(error)throw error;people={};data.forEach(p=>people[p.id]={name:p.name,role:p.role,active:p.active});};
+  const loadPeople=async()=>{const {data,error}=await sb.from("people").select("id,name,role,email,active");if(error)throw error;people={};data.forEach(p=>people[p.id]={name:p.name,role:p.role,email:p.email||"",active:p.active});};
   const loadItems=async()=>{const {data,error}=await sb.from("items").select("*");if(error)throw error;items={};data.forEach(r=>items[r.id]=rowToItem(r));};
   const loadSettings=async()=>{const {data}=await sb.from("settings").select("key,value").eq("key","site");settings=(data&&data[0]&&data[0].value)||{};};
   const loadAll=async()=>{try{await Promise.all([loadPeople(),loadItems(),loadSettings()]);$("roNote").hidden=true;}catch(e){console.error(e);$("roNote").textContent=t("offline");$("roNote").hidden=false;}};
@@ -634,12 +639,11 @@ applyLang();
   token=lsGet("token");meId=lsGet("me");
   if(token){try{const me=await rpc("board_me",{p_token:token});if(me&&people[me.person]){meId=me.person;myRole=me.role;isPm=myRole==="pm";}else{token=null;meId=null;lsSet("token",null);}}catch(e){token=null;meId=null;}}
   if(!token){meId=null;}
-  pickDefaultFilter();renderWho();renderList();if(!$("mWho").hidden)openWho();
-  if(!meId&&!lsGet("loggedOut"))openWho();
+  pickDefaultFilter();renderWho();renderList();  if(!meId&&!lsGet("loggedOut"))openWho();
   const cur=document.querySelector("main section.on")?.id;if(cur==="toplanti")renderMeet();if(cur==="gosterge")renderDash();if(cur==="ayarlar")renderSettings();
   // canlı güncelleme: değişiklikte ilgili tabloyu yeniden çek; kanal kopuksa 30 sn'de bir yenile
   let live=false;
-  const refresh=async(tbl)=>{try{if(tbl==="people")await loadPeople();else if(tbl==="settings")await loadSettings();else await loadItems();rerender();if(!$("mWho").hidden&&$("pinBox").hidden)openWho();}catch(e){console.error(e);}};
+  const refresh=async(tbl)=>{try{if(tbl==="people")await loadPeople();else if(tbl==="settings")await loadSettings();else await loadItems();rerender();}catch(e){console.error(e);}};
   try{sb.channel("board").on("postgres_changes",{event:"*",schema:"public",table:"items"},()=>refresh("items")).on("postgres_changes",{event:"*",schema:"public",table:"people"},()=>refresh("people")).on("postgres_changes",{event:"*",schema:"public",table:"settings"},()=>refresh("settings")).subscribe(st=>{live=st==="SUBSCRIBED";});}catch(e){console.error("realtime",e);}
   setInterval(()=>{if(!live||document.visibilityState==="visible")loadAll().then(rerender);},live?120000:30000);
   document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")loadAll().then(rerender);});
