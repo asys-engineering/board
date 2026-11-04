@@ -94,7 +94,11 @@ const item = (id, no, title, st, by, ass, due, extra = {}) => ({ id, no, title, 
     // comment
     await page.locator('.it', { hasText: 'düz.' }).click(); await page.fill('#cmText', 'yorum'); await page.click('#cmAdd'); await page.waitForTimeout(300);
     if (!(await page.locator('#cmList .cm').count())) throw new Error('comment missing');
+    if (!/^#m\d+$/.test(await page.evaluate(() => location.hash))) throw new Error('detail hash missing');
+    await page.evaluate(() => { window.__copied = null; navigator.share = undefined; navigator.clipboard.writeText = async s => { window.__copied = s; }; });
+    await page.click('#dShare'); await page.waitForTimeout(200); if (!/#m\d+/.test(await page.evaluate(() => window.__copied || ''))) throw new Error('share text missing link');
     await page.click('#detClose');
+    await page.evaluate(() => { location.hash = '#m1'; }); await page.waitForTimeout(300); if (await page.locator('#mDet').isHidden()) throw new Error('deep link did not open item'); await page.click('#detClose');
     // done on own
     await page.locator('.it', { hasText: 'düz.' }).locator('.doneBtn').click(); await page.waitForTimeout(300);
     if (!(await page.locator('.it.done').count())) throw new Error('done failed');
