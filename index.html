@@ -586,7 +586,7 @@ let detId=null;
 function openDetail(id){detId=id;renderDetail();$("mDet").hidden=false;const it=items[id];if(it)try{history.replaceState(null,"","#m"+it.no);}catch(e){}}
 function itemUrl(no){return location.origin+location.pathname+"#m"+no;}
 function openByNo(no){const e=Object.entries(items).find(([,x])=>x.no===no);if(e)openDetail(e[0]);}
-async function shareText(title,url){const text=title+"\n"+url;if(navigator.share){try{await navigator.share({title,text:title,url});return;}catch(e){if(e&&e.name==="AbortError")return;}}await copyText(text);}
+async function shareText(title,url){if(navigator.share&&/Android|iPhone|iPad/i.test(navigator.userAgent)){try{await navigator.share({title,url});return;}catch(e){if(e&&e.name==="AbortError")return;}}await copyText(title+"\n"+url);}
 function panelInviteText(){return (projectName()?projectName()+" · ":"")+"Board @ ASYS\n"+location.origin+location.pathname+"\n"+t("invite_hint");}
 function renderDetail(){const it=items[detId];if(!it){$("mDet").hidden=true;return;}const b=$("detBox");const canEditOwn=it.by===meId&&it.status==="acik";
   b.innerHTML=`<div class="hd"><h2 class="${it.status==="yapildi"?"strike":""}"><span class="no">#${it.no}</span> ${esc(it.title)}</h2><button class="x" id="detX" aria-label="Kapat">×</button></div>
